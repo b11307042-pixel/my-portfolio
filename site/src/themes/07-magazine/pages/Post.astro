@@ -1,0 +1,37 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import Plate from '../components/Plate.astro';
+import Seal from '../components/Seal.astro';
+import { getProfile, u, fmtDate, readMinutes } from '../../../lib/site';
+import { render } from 'astro:content';
+
+const { entry, prev, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const p = (await getProfile()).data;
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="post">
+  <article class="essay">
+    <header class="essay-head">
+      <div class="op-top" data-fade-hero>
+        <a class="ln-a" href={u('/blog/')}>← 專欄</a>
+        <span>{d.tags.join('・')}</span>
+        <span class="it">{fmtDate(d.date)}</span>
+      </div>
+      <p class="essay-k" data-fade-hero><span class="it">Column</span>　專欄</p>
+      <h1 class:list={['essay-t', kp(d.title)]} data-ink-hero>{d.title}</h1>
+      <p class:list={['essay-stand', kp(d.summary)]} data-ink-hero>{d.summary}</p>
+      <p class="essay-by" data-fade-hero><Seal text={[...p.name].slice(-1).join('')} size="26px" /><span>文／{p.name}</span><span>約 {readMinutes(entry.body)} 分鐘</span></p>
+    </header>
+    {d.cover && <div class="essay-cover"><Plate src={d.cover} alt="" hero ratio="16 / 9" /></div>}
+    <div class="prose essay-body dropcap-first"><Content /></div>
+    <p class="endmark" aria-hidden="true"><Seal text={[...p.name].slice(-1).join('')} size="22px" /></p>
+    {(prev || next) && (
+      <nav class="pager" aria-label="其他文章">
+        {prev ? <a href={u(`/blog/${prev.id}/`)}><span class="pager-k">較新 <span class="it">Newer</span></span><span class="pager-t">{prev.data.title}</span></a> : <span></span>}
+        {next ? <a class="pager-next" href={u(`/blog/${next.id}/`)}><span class="pager-k">較舊 <span class="it">Older</span></span><span class="pager-t">{next.data.title}</span></a> : <span></span>}
+      </nav>
+    )}
+  </article>
+</Layout>

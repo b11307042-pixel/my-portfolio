@@ -1,0 +1,51 @@
+---
+import Layout from '../Layout.astro';
+import Dialog from '../components/Dialog.astro';
+import Px from '../components/Px.astro';
+import ContactForm from '../../../shared/ContactForm.astro';
+import { getProfile, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const host = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+const line = `嗨，我是${p.name}。${p.status ? p.status + '。' : ''}實習、合作或只是想交流，都歡迎留言給我，我通常一兩天內回覆。`;
+---
+<Layout title="聯絡" page="contact" cta={false}>
+  <header class="ph wrap">
+    <p class="ph-stage" data-in><span class="ph-chip">STAGE 06</span><span class="ph-en">TALK</span></p>
+    <h1 class="ph-t" data-in><Px name="heart" scale={5} class="ph-ico bob" />來組隊吧</h1>
+  </header>
+  <section class="wrap ct">
+    <div class="ct-dlg" data-in>
+      <Dialog text={line} big>
+        <div class="choices">
+          {p.email && <a class="choice" href={`mailto:${p.email}`}><Px name="cursor" scale={2} class="choice-cur" />寄信給我</a>}
+          {p.email && <button type="button" class="choice" data-copy={p.email}><Px name="cursor" scale={2} class="choice-cur" /><span data-copy-label>複製 Email</span></button>}
+          <a class="choice" href="#ct-form"><Px name="cursor" scale={2} class="choice-cur" />在這裡留言</a>
+        </div>
+      </Dialog>
+    </div>
+    <div class="ct-grid">
+      <div class="box t-gold ct-form" id="ct-form" data-rise>
+        <div class="box-bar"><span class="box-t">MESSAGE</span><span class="box-m">留言給我</span><span class="box-x" aria-hidden="true"><i></i><i></i></span></div>
+        <div class="ct-form-in"><ContactForm email={p.email} /></div>
+      </div>
+      <aside class="ct-side">
+        {p.email && (
+          <div class="box t-line ct-mail" data-rise>
+            <span class="ct-k">EMAIL</span>
+            <a href={`mailto:${p.email}`}>{p.email}</a>
+          </div>
+        )}
+        {p.links.length > 0 && (
+          <div class="box t-line ct-links" data-rise>
+            <span class="ct-k">PORTALS</span>
+            <ul>
+              {p.links.map((l) => <li><a href={u(l.url)} target="_blank" rel="noopener"><Px name="cursor" scale={2} class="ct-cur" /><span>{l.label}</span><small>{host(l.url)}</small></a></li>)}
+            </ul>
+          </div>
+        )}
+        {p.location && <p class="ct-loc" data-rise><Px name="key" scale={3} />{p.location}</p>}
+        {p.resume && <a class="pbtn t-line" href={u(p.resume)} target="_blank" rel="noopener">下載履歷 PDF</a>}
+      </aside>
+    </div>
+  </section>
+</Layout>

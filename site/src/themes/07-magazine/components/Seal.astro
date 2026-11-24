@@ -1,0 +1,7 @@
+---
+// 印章：朱紅方塊、白字。名字取最後兩個字（直排），作品取第一個字
+interface Props { text: string; size?: string; class?: string }
+const { text, size = '56px', class: cls } = Astro.props;
+const chars = [...text].slice(0, 4);
+---
+<span class:list={['seal', cls, `seal-${chars.length}`]} style={`--s:${size}`} aria-hidden="true"><span>{chars.join('')}</span></span>

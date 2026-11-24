@@ -1,0 +1,39 @@
+---
+import { getProfile, navItems, u } from '../../../lib/site';
+import Arrow from './Arrow.astro';
+interface Props { cta?: boolean }
+const { cta = true } = Astro.props;
+const p = (await getProfile()).data;
+const items = await navItems();
+const year = new Date().getFullYear();
+---
+<footer class="ft">
+  {cta && (
+    <a class="ft-cta" href={u('/contact/')} data-view data-view-label="Say hi">
+      <span class="mono ft-k">(Next step) — 聯絡</span>
+      <span class="ft-big"><span>Let’s talk</span><Arrow class="ft-arrow" dir="ne" /></span>
+      <span class="ft-sub">{p.status || '有想法、有職缺，或只是想聊聊，都歡迎寫信。'}</span>
+    </a>
+  )}
+  <div class="ft-grid">
+    <div class="ft-mail">
+      <p class="mono ft-k">Email</p>
+      {p.email ? <a class="ft-mail-a ul" href={`mailto:${p.email}`}>{p.email}</a> : <a class="ft-mail-a ul" href={u('/contact/')}>聯絡表單</a>}
+    </div>
+    <div>
+      <p class="mono ft-k">Sitemap</p>
+      <ul>{items.map((it) => <li><a class="ul" href={u(it.href)}>{it.label}</a></li>)}</ul>
+    </div>
+    {p.links.length > 0 && (
+      <div>
+        <p class="mono ft-k">Social</p>
+        <ul>{p.links.map((l) => <li><a class="ul" href={u(l.url)} target="_blank" rel="noopener">{l.label}</a></li>)}</ul>
+      </div>
+    )}
+  </div>
+  <div class="ft-base mono">
+    <span>© {year} {p.nameEn || p.name}</span>
+    <span>{p.location}</span>
+    <a class="ul" href="#main">Back to top ↑</a>
+  </div>
+</footer>

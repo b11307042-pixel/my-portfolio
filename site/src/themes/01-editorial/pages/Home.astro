@@ -1,0 +1,211 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import Media from '../components/Media.astro';
+import Poster from '../components/Poster.astro';
+import SecHead from '../components/SecHead.astro';
+import { getProfile, getProjects, getExperience, getPosts, u, fmtDate } from '../../../lib/site';
+
+const p = (await getProfile()).data;
+const projects = await getProjects();
+const featured = projects.filter((x) => x.data.featured).length ? projects.filter((x) => x.data.featured) : projects;
+const exp = (await getExperience()).slice(0, 5);
+const posts = (await getPosts()).slice(0, 3);
+const n2 = (i: number) => String(i).padStart(2, '0');
+const year = new Date().getFullYear();
+
+// 名字依字數決定大小，兩個字到五個字都撐得剛好
+const nameLen = [...p.name].length;
+// highlights：把「TOEIC 785」拆成前綴＋數字，「320+」拆成數字＋後綴
+const hl = p.highlights.map((h) => {
+  const m = h.value.match(/^(\D*?)\s*([\d][\d,.]*)\s*(\D*)$/);
+  return m ? { pre: m[1], num: m[2], suf: m[3], label: h.label } : { pre: '', num: '', suf: '', text: h.value, label: h.label };
+});
+const skills = p.skills.flatMap((g) => g.items);
+let sec = 0;
+const next = () => n2(++sec);
+const secWork = featured.length ? next() : '';
+const secProfile = next();
+const secExp = exp.length ? next() : '';
+const secPosts = posts.length ? next() : '';
+const secContact = next();
+---
+<Layout page="home">
+  <section class="hero">
+    <div class="hero-meta mono" data-hero-fade>
+      <span>Portfolio ©{year}</span>
+      <span>{p.role}</span>
+      <span>{p.location}</span>
+      <span class="hero-idx">Index {n2(projects.length)} works</span>
+    </div>
+    <span class="rule" data-rule></span>
+    <div class="hero-main">
+      <div class="hero-name-wrap">
+        {p.nameEn && <p class="hero-en" data-hero-fade>{p.nameEn}<span class="sl">/</span>Portfolio</p>}
+        <h1 class="hero-name" style={`--len:${nameLen}`} data-hero-chars>{p.name}</h1>
+      </div>
+      {p.avatar ? (
+        <Media class="hero-photo" src={p.avatar} alt={p.name} ratio="1 / 1" hero gray />
+      ) : (
+        <div class="hero-disc" data-hero-fade aria-hidden="true">
+          <span class="disc-k mono">Index</span>
+          <span class="disc-n">{n2(projects.length)}</span>
+          <span class="disc-l mono">Works {year}</span>
+        </div>
+      )}
+      <p class="hero-v mono" aria-hidden="true">{p.role}<span>■</span>{year}</p>
+    </div>
+    <div class="hero-foot">
+      <p class:list={['hero-tag', kp(p.tagline)]} data-hero-lines>{p.tagline}</p>
+      <div class="hero-side">
+        {p.status && <p class="hero-status" data-hero-fade><span class="sq" aria-hidden="true"></span>{p.status}</p>}
+        <p class="hero-intro" data-hero-lines>{p.intro}</p>
+        <div class="hero-cta" data-hero-fade>
+          <a class="btn" href={u('/projects/')}><span>看作品</span><span aria-hidden="true">→</span></a>
+          <a class="ul" href={u('/contact/')}>聯絡我</a>
+        </div>
+      </div>
+    </div>
+    <p class="hero-scroll mono" data-hero-fade aria-hidden="true">(Scroll)<span>↓</span></p>
+  </section>
+
+  {hl.length > 0 && (
+    <section class="hl" aria-label="重點數字">
+      {hl.map((h, i) => (
+        <div class="hl-i" data-up>
+          <span class="mono hl-n">H.{n2(i + 1)}</span>
+          {h.num ? (
+            <p class="hl-v">{h.pre && <span class="hl-pre">{h.pre}</span>}<span data-count>{h.num}</span>{h.suf && <span class="hl-suf">{h.suf}</span>}</p>
+          ) : <p class="hl-v hl-text">{h.text}</p>}
+          <p class="hl-l">{h.label}</p>
+        </div>
+      ))}
+    </section>
+  )}
+
+  {featured.length > 0 && (
+    <section class="hx" data-hscroll aria-label="精選作品">
+      <SecHead num={secWork} en="Selected Work" zh="精選作品" count={`${n2(featured.length)} / ${n2(projects.length)}`} href="/projects/" link="全部作品" />
+      <div class="hx-view">
+        <ol class="hx-track">
+          {featured.map((x, i) => (
+            <li class="hx-card">
+              <a href={u(`/projects/${x.id}/`)}>
+                <div class="hx-top"><span class="hx-n">{n2(i + 1)}</span><span class="mono">{x.data.period}</span></div>
+                <div class="hx-media">
+                  {x.data.cover ? <Media src={x.data.cover} alt={x.data.title} ratio="16 / 10" pos="top" reveal={false} /> : <Poster title={x.data.title} index={i} tags={x.data.tags} period={x.data.period} />}
+                </div>
+                <h3 class:list={['hx-t', kp(x.data.title)]}>{x.data.title}</h3>
+                <p class="hx-s">{x.data.summary}</p>
+                <p class="mono hx-tags">{x.data.tags.join(' · ')}</p>
+              </a>
+            </li>
+          ))}
+          <li class="hx-card hx-end">
+            <a href={u('/projects/')}>
+              <span class="mono">Index</span>
+              <span class="hx-end-t">全部作品<br /><span class="en">All work ({n2(projects.length)})</span></span>
+              <span class="hx-arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        </ol>
+      </div>
+      <div class="hx-bar" aria-hidden="true"><span></span></div>
+    </section>
+  )}
+
+  <section class="pf">
+    <SecHead num={secProfile} en="Profile" zh="關於我" href="/about/" link="完整介紹" />
+    <div class="pf-in">
+      <p class="pf-q mono">{p.quote ? '(Belief)' : '(Intro)'}</p>
+      <p class:list={['pf-statement', kp(p.quote || p.intro)]} data-lines>{p.quote || p.intro}</p>
+    </div>
+    {p.traits.length > 0 && (
+      <ol class="traits">
+        {p.traits.map((t, i) => (
+          <li data-up><span class="tr-n">{n2(i + 1)}</span><h3 class={kp(t.title)}>{t.title}</h3><p>{t.text}</p></li>
+        ))}
+      </ol>
+    )}
+  </section>
+
+  {skills.length > 0 && (
+    <section class="mq" data-marquee aria-label="技能">
+      <div class="mq-track" aria-hidden="true">
+        {[0, 1].map(() => <span class="mq-set">{skills.map((s) => <><span class="mq-i">{s}</span><span class="mq-sep"></span></>)}</span>)}
+      </div>
+      <p class="sr">{skills.join('、')}</p>
+    </section>
+  )}
+
+  {exp.length > 0 && (
+    <section class="sec sec-exp">
+      <SecHead num={secExp} en="Experience" zh="經歷" href="/experience/" link="全部經歷" />
+      <ol class="xrows">
+        {exp.map((e, i) => (
+          <li class="xrow" data-up>
+            <span class="mono xr-n">{n2(i + 1)}</span>
+            <span class="mono xr-p">{e.data.period}</span>
+            <span class="xr-t">{e.data.title}</span>
+            <span class="xr-o">{e.data.org}</span>
+            <span class="mono xr-k">{e.data.type}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {posts.length > 0 && (
+    <section class="sec sec-posts">
+      <SecHead num={secPosts} en="Writing" zh="文章" href="/blog/" link="全部文章" />
+      <ol class="prow-list">
+        {posts.map((x) => (
+          <li data-up>
+            <a class="prow" href={u(`/blog/${x.id}/`)}>
+              <span class="mono">{fmtDate(x.data.date)}</span>
+              <span class:list={['prow-t', kp(x.data.title)]}>{x.data.title}</span>
+              <span class="prow-s">{x.data.summary}</span>
+              <span class="prow-a" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  <section class="cta">
+    <SecHead num={secContact} en="Contact" zh="聯絡" />
+    <a class="cta-big" href={u('/contact/')}>
+      <span class="cta-l" data-lines>有個想法？<br />一起聊聊。</span>
+      <span class="cta-arrow" aria-hidden="true">→</span>
+    </a>
+  </section>
+</Layout>
+
+<script>
+  import { gsap, ScrollTrigger, onReady } from '../../../lib/motion';
+  onReady(() => {
+    const sec = document.querySelector<HTMLElement>('[data-hscroll]');
+    if (!sec) return;
+    const track = sec.querySelector<HTMLElement>('.hx-track')!;
+    const bar = sec.querySelector<HTMLElement>('.hx-bar span');
+    const mm = gsap.matchMedia();
+    mm.add('(min-width: 900px)', () => {
+      sec.classList.add('is-pinned');
+      const dist = () => Math.max(0, track.scrollWidth - document.documentElement.clientWidth);
+      const tw = gsap.to(track, {
+        x: () => -dist(), ease: 'none',
+        scrollTrigger: {
+          trigger: sec, start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 0.8, invalidateOnRefresh: true,
+          onUpdate: (s) => { if (bar) bar.style.transform = `scaleX(${s.progress})`; },
+        },
+      });
+      // 每張卡裡的圖在橫向捲動時輕微視差
+      track.querySelectorAll<HTMLElement>('.hx-media img').forEach((im) => {
+        gsap.fromTo(im, { xPercent: -6, scale: 1.12 }, { xPercent: 6, scale: 1.12, ease: 'none', scrollTrigger: { trigger: im.closest('.hx-card')!, containerAnimation: tw, start: 'left right', end: 'right left', scrub: true } });
+      });
+      ScrollTrigger.refresh();
+      return () => { sec.classList.remove('is-pinned'); };
+    });
+  });
+</script>

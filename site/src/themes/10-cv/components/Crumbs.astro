@@ -1,0 +1,10 @@
+---
+import { getProfile, u } from '../../../lib/site';
+interface Props { items: { href?: string; label: string }[] }
+const me = (await getProfile()).data;
+const { items } = Astro.props;
+---
+<p class="crumbs mono" data-in>
+  <a href={u('/')}>{me.nameEn || me.name}</a>
+  {items.map((i) => <><span aria-hidden="true">/</span>{i.href ? <a href={u(i.href)}>{i.label}</a> : <span>{i.label}</span>}</>)}
+</p>

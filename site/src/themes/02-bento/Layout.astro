@@ -1,0 +1,83 @@
+---
+import './styles.css';
+import Seo from '../../shared/Seo.astro';
+import Nav from './components/Nav.astro';
+import Footer from './components/Footer.astro';
+import { config } from '../../lib/site';
+interface Props { title?: string; description?: string; image?: string; page?: string }
+const { title, description, image, page = '' } = Astro.props;
+---
+<!doctype html>
+<html lang={config.lang}>
+<head>
+  <Seo title={title} description={description} image={image} />
+</head>
+<body data-page={page}>
+  <a class="skip" href="#main">跳到內容</a>
+  <Nav />
+  <main id="main"><slot /></main>
+  <Footer />
+  <script>
+    import { gsap, ScrollTrigger, still, smoothScroll, onReady } from '../../lib/motion';
+
+    // 導覽列：捲動後縮小、變毛玻璃
+    const nav = document.querySelector<HTMLElement>('[data-nav]');
+    const onScroll = () => nav?.classList.toggle('is-scrolled', window.scrollY > 12);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // 手機選單
+    const burger = document.querySelector<HTMLButtonElement>('[data-burger]');
+    const sheetLinks = document.querySelectorAll('.sheet-in a, .sheet-mail');
+    burger?.addEventListener('click', () => {
+      const open = document.documentElement.classList.toggle('menu-open');
+      burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-label', open ? '關閉選單' : '開啟選單');
+      if (open && !still) gsap.from(sheetLinks, { y: 24, opacity: 0, duration: 0.7, ease: 'expo.out', stagger: 0.04, delay: 0.08 });
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.documentElement.classList.contains('menu-open')) burger?.click();
+    });
+
+    const lenis = smoothScroll({ lerp: 0.09 });
+    if (lenis) {
+      const obs = new MutationObserver(() => (document.documentElement.classList.contains('menu-open') ? lenis.stop() : lenis.start()));
+      obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    onReady(() => {
+      // 共用：往上浮現（只處理首屏以下的，首屏交給各頁自己的開場）
+      const rise = gsap.utils.toArray<HTMLElement>('[data-rise]').filter((el) => el.getBoundingClientRect().top > window.innerHeight * 0.92);
+      if (rise.length) gsap.set(rise, { opacity: 0, y: 56 });
+      if (rise.length) ScrollTrigger.batch(rise, {
+        start: 'top 90%',
+        once: true,
+        onEnter: (els) => gsap.to(els, { opacity: 1, y: 0, duration: 1.2, ease: 'expo.out', stagger: 0.09, overwrite: true }),
+      });
+
+      // 數字跳動：HTML 裡已經是最後的數字，這裡從 0 數上去
+      document.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
+        const m = (el.textContent || '').match(/^(\D*?)(\d[\d,]*)(.*)$/s);
+        if (!m) return;
+        const [, pre, num, post] = m;
+        const end = Number(num.replace(/,/g, ''));
+        const o = { v: 0 };
+        const fmt = (v: number) => pre + Math.round(v).toLocaleString('en-US').replace(/,/g, num.includes(',') ? ',' : '') + post;
+        el.textContent = fmt(0);
+        gsap.to(o, {
+          v: end, duration: Math.min(2.2, 0.9 + end / 600), ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 92%', once: true },
+          onUpdate: () => { el.textContent = fmt(o.v); },
+        });
+      });
+
+      // 共用：捲動時從小放大到定位（裝置外框、大圖）
+      gsap.utils.toArray<HTMLElement>('[data-zoom]').forEach((el) => {
+        gsap.from(el, { scale: 0.86, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'top 30%', scrub: 0.6 } });
+      });
+
+      ScrollTrigger.refresh();
+    });
+  </script>
+</body>
+</html>

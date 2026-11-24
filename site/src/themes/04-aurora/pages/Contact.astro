@@ -1,0 +1,37 @@
+---
+import Layout from '../Layout.astro';
+import ContactForm from '../../../shared/ContactForm.astro';
+import { getProfile, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+---
+<Layout title="聯絡" page="contact">
+  <section class="page-hero wrap glass glass-xl contact-hero" data-pane>
+    <p class="eyebrow" data-intro>Contact</p>
+    <h1 class="page-title"><span data-split>一起聊聊吧</span></h1>
+    <p class="page-lead" data-intro>{p.status ? `${p.status}。` : ''}實習、合作或只是想交流，都歡迎來信。</p>
+  </section>
+  <section class="wrap contact">
+    <div class="contact-side">
+      {p.email && (
+        <div class="glass contact-mail" data-pane data-tilt>
+          <p class="eyebrow">Email</p>
+          <a class="mail-big" href={`mailto:${p.email}`}>{p.email}</a>
+          <button class="btn btn-glass btn-sm copy" type="button" data-copy={p.email}><span class="copy-label">複製 Email</span></button>
+        </div>
+      )}
+      <dl class="contact-meta glass" data-pane>
+        {p.location && <div><dt>所在地</dt><dd>{p.location}</dd></div>}
+        {p.status && <div><dt>現在</dt><dd><span class="dot"></span>{p.status}</dd></div>}
+        <div><dt>回覆時間</dt><dd>通常一兩天內</dd></div>
+      </dl>
+      {p.links.length > 0 && (
+        <ul class="contact-links glass" data-pane>
+          {p.links.map((l) => <li><a href={u(l.url)} target="_blank" rel="noopener"><span>{l.label}</span><span aria-hidden="true">↗</span></a></li>)}
+        </ul>
+      )}
+    </div>
+    <div class="glass contact-form" data-pane>
+      <ContactForm email={p.email} />
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,49 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import { getExperience, getProfile, u } from '../../../lib/site';
+
+const exp = await getExperience();
+const p = (await getProfile()).data;
+const colors = ['y', 'p', 'b', 'm', 'o'];
+const types = [...new Set(exp.map((e) => e.data.type || '經歷'))];
+const colorOf = (t?: string) => colors[types.indexOf(t || '經歷') % colors.length];
+---
+<Layout title="經歷" page="experience">
+  <PageHead en="EXPERIENCE" title="一路走來" lead="實習、打工、社團和比賽。每一段都寫了我實際做了什麼。" color="m" count={exp.length} countLabel="段經歷" />
+
+  {exp.length > 0 ? (
+    <section class="wrap sec-tight">
+      {types.length > 1 && (
+        <ul class="legend" aria-label="經歷類型">
+          {types.map((t) => <li><span class={`lg-dot c-${colorOf(t)}`}></span>{t}<b>{exp.filter((e) => (e.data.type || '經歷') === t).length}</b></li>)}
+        </ul>
+      )}
+      <ol class="xp">
+        {exp.map((e) => (
+          <li class="xp-item" data-rise>
+            <div class="xp-when">
+              <span class="xp-period">{e.data.period}</span>
+              <span class={`xp-type c-${colorOf(e.data.type)}`}>{e.data.type || '經歷'}</span>
+            </div>
+            <span class={`xp-node c-${colorOf(e.data.type)}`} aria-hidden="true"></span>
+            <article class="xp-card" data-tilt>
+              <h2>{e.data.title}</h2>
+              <p class="xp-org">{e.data.org}</p>
+              <p class="xp-sum">{e.data.summary}</p>
+              {e.data.points.length > 0 && <ul class="xp-pts">{e.data.points.map((x) => <li>{x}</li>)}</ul>}
+            </article>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ) : (
+    <section class="wrap sec-tight">
+      <div class="empty">
+        <strong>第一段經歷，正在發生</strong>
+        <p>{p.status || '歡迎聯絡我，聊聊可以一起做的事。'}</p>
+        <a class="btn btn-y" href={u('/contact/')}>聯絡我</a>
+      </div>
+    </section>
+  )}
+</Layout>

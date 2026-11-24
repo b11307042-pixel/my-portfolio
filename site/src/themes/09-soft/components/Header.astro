@@ -1,0 +1,43 @@
+---
+import { getProfile, navItems, u, initials } from '../../../lib/site';
+const p = (await getProfile()).data;
+const items = await navItems();
+const path = Astro.url.pathname;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const active = (href: string) => {
+  const full = base + href;
+  return href === '/' ? path === full || path === base + '/' : path.startsWith(full);
+};
+const tones = ['lav', 'peach', 'mint', 'butter', 'sky', 'lav'];
+---
+<header class="hd" data-hd>
+  <div class="hd-in">
+    <a class="logo" href={u('/')} aria-label={`${p.name}，回首頁`}>
+      <span class="logo-dot" aria-hidden="true">{initials(p.name, p.nameEn)}</span>
+      <span class="logo-name">{p.name}</span>
+    </a>
+    <nav class="hd-nav" aria-label="主要導覽" data-nav>
+      <span class="hd-ind" aria-hidden="true" data-ind></span>
+      {items.map((it) => (
+        <a href={u(it.href)} class:list={['hd-link', { on: active(it.href) }]} aria-current={active(it.href) ? 'page' : undefined}>{it.label}</a>
+      ))}
+    </nav>
+    <a class="btn btn-sm btn-main hd-cta" href={u('/contact/')} data-squish>聯絡我</a>
+    <button class="burger" type="button" data-burger aria-expanded="false" aria-controls="sheet" aria-label="打開選單">
+      <span aria-hidden="true"><i></i><i></i><i></i></span>
+    </button>
+  </div>
+</header>
+<div class="sheet-bg" data-sheet-bg></div>
+<div class="sheet" id="sheet" data-sheet role="dialog" aria-label="選單">
+  <span class="sheet-grip" aria-hidden="true"></span>
+  <nav class="sheet-nav" aria-label="手機導覽">
+    {items.map((it, i) => (
+      <a href={u(it.href)} class:list={['sheet-link', `t-${tones[i % tones.length]}`, { on: active(it.href) }]} aria-current={active(it.href) ? 'page' : undefined}>
+        <span class="sheet-zh">{it.label}</span>
+        <span class="sheet-en">{it.en}</span>
+      </a>
+    ))}
+  </nav>
+  {p.email && <a class="sheet-mail" href={`mailto:${p.email}`}>{p.email}</a>}
+</div>

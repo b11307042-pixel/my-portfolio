@@ -1,0 +1,15 @@
+---
+// 中文斷行：用 Intl.Segmenter 把句子切成詞，詞和詞之間放 <wbr>，配合 CSS 的 word-break: keep-all，
+// 標題只會在詞的邊界換行，不會把「工作」拆成兩行。
+interface Props { text: string }
+const { text } = Astro.props;
+const seg = typeof Intl !== 'undefined' && 'Segmenter' in Intl ? new Intl.Segmenter('zh-Hant', { granularity: 'word' }) : null;
+const parts: string[] = [];
+for (const s of seg ? [...seg.segment(text)].map((x) => x.segment) : [text]) {
+  // 標點和空白黏在前一個詞後面，行首才不會出現「，」
+  if (parts.length && /^[\p{P}\s]+$/u.test(s) && !/^[「『（(《〈【]/.test(s)) parts[parts.length - 1] += s;
+  else if (parts.length && /[「『（(《〈【]$/.test(parts[parts.length - 1])) parts[parts.length - 1] += s;
+  else parts.push(s);
+}
+---
+{parts.map((s) => <Fragment>{s}<wbr /></Fragment>)}

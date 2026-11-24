@@ -1,0 +1,30 @@
+---
+import Layout from '../Layout.astro';
+import Head from '../components/Head.astro';
+import { getExperience } from '../../../lib/site';
+const exp = await getExperience();
+const types = [...new Set(exp.map((x) => x.data.type).filter(Boolean))] as string[];
+---
+<Layout title="經歷" page="experience">
+  <Head en="Experience" zh="經歷" count={exp.length} lead={types.length ? types.join(' / ') : undefined} />
+  <section class="sec-s pad">
+    {exp.length === 0 && <p class="empty">經歷整理中。</p>}
+    <ol class="xp">
+      {exp.map((x, i) => (
+        <li class="xp-i" data-up>
+          <div class="xp-l">
+            <span class="mono xp-n">({String(exp.length - i).padStart(2, '0')})</span>
+            <span class="mono xp-p">{x.data.period}</span>
+            {x.data.type && <span class="xp-k mono">{x.data.type}</span>}
+          </div>
+          <div class="xp-r">
+            <h2 class="xp-t">{x.data.title}</h2>
+            <p class="xp-o">{x.data.org}</p>
+            <p class="xp-s">{x.data.summary}</p>
+            {x.data.points.length > 0 && <ul class="xp-pts">{x.data.points.map((pt) => <li>{pt}</li>)}</ul>}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+</Layout>

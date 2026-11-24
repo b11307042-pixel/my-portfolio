@@ -1,0 +1,31 @@
+---
+import Layout from '../Layout.astro';
+import Head from '../components/Head.astro';
+import Media from '../components/Media.astro';
+import Marquee from '../components/Marquee.astro';
+import Arrow from '../components/Arrow.astro';
+import { getProjects, u } from '../../../lib/site';
+const projects = await getProjects();
+const tags = [...new Set(projects.flatMap((x) => x.data.tags))];
+---
+<Layout title="作品" page="projects">
+  <Head en="Work" zh="作品" count={projects.length} lead="每個作品都寫了背景、我做了什麼，和最後的數字。" />
+  <Marquee items={tags} accent />
+  <section class="sec-s pad">
+    {projects.length === 0 && <p class="empty">作品整理中。</p>}
+    <div class:list={['grid', { 'grid-odd': projects.length % 2 === 1 }]}>
+      {projects.map((x, i) => (
+        <a class="card" href={u(`/projects/${x.id}/`)} data-view>
+          <Media project={x} index={i} ratio={i === 0 && projects.length % 2 === 1 ? '16 / 8' : '4 / 3'} eager={i < 2} />
+          <div class="card-b">
+            <span class="card-n mono">({String(i + 1).padStart(2, '0')})</span>
+            <h2 class="card-t">{x.data.title}</h2>
+            <span class="card-go"><Arrow dir="ne" /></span>
+            <p class="card-s">{x.data.summary}</p>
+            <p class="card-m mono">{[x.data.period, x.data.tags.slice(0, 3).join(' / ')].filter(Boolean).join(' — ')}</p>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+</Layout>

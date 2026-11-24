@@ -1,0 +1,22 @@
+---
+// 玻璃裝置框：厚玻璃邊框包住作品截圖，滑過時浮起來。沒有截圖時，畫面裡排出作品的重點。
+import Spec from './Spec.astro';
+interface Props {
+  src?: string; alt?: string; label?: string; eager?: boolean;
+  project?: { title: string; summary: string; results: string[]; tags: string[]; period?: string };
+  index?: number;
+}
+const { src, alt = '', label = '', eager = false, project, index = 0 } = Astro.props;
+---
+<figure class:list={['device glass', !src && 'device-type']} data-device>
+  <div class="device-bar" aria-hidden="true">
+    <span class="lights"><i></i><i></i><i></i></span>
+    <span class="device-url">{label}</span>
+    <span class="lights-pad"></span>
+  </div>
+  <div class="screen">
+    {src
+      ? <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} />
+      : project && <Spec {...project} index={index} />}
+  </div>
+</figure>

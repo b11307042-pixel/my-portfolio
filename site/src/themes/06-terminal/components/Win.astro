@@ -1,0 +1,27 @@
+---
+// 視窗：標題列（關閉、標題、放大、收合）＋可選的資訊列＋內容＋可選的底部按鈕列。
+// main：這一頁的主視窗（關閉＝回桌面首頁）。plain：灰色面板（對話框、控制台），不是白色文件。
+import Icon from './Icon.astro';
+import type { IconKind } from '../lib';
+interface Props { id: string; title: string; icon?: IconKind; class?: string; main?: boolean; plain?: boolean; info?: string; infoR?: string; active?: boolean; label?: string }
+const { id, title, icon = 'doc', class: cls, main = false, plain = false, info, infoR, active = false, label } = Astro.props;
+const hasFoot = Astro.slots.has('foot');
+---
+<section class:list={['win', cls, { 'is-main': main, 'is-plain': plain, 'is-active': active }]} id={id} data-win aria-labelledby={`${id}-t`} data-main={main ? '' : undefined}>
+  <div class="win-bar" data-bar>
+    <button class="wb wb-close" type="button" data-close aria-label={main ? `關閉「${title}」，回到桌面` : `關閉「${title}」`}></button>
+    <span class="win-title" id={`${id}-t`}>
+      <Icon kind={icon} size={16} />
+      <span class="win-tt">{title}</span>
+      {label && <span class="sr">{label}</span>}
+    </span>
+    <button class="wb wb-zoom" type="button" data-zoom aria-label={`放大「${title}」`} aria-pressed="false"></button>
+    <button class="wb wb-shade" type="button" data-shade aria-label={`收合「${title}」`} aria-expanded="true"></button>
+  </div>
+  {(info || infoR) && <div class="win-info"><span>{info}</span>{infoR && <span>{infoR}</span>}</div>}
+  <div class="win-body">
+    <slot />
+  </div>
+  {hasFoot && <div class="win-foot"><slot name="foot" /></div>}
+  <span class="win-grow" aria-hidden="true"></span>
+</section>

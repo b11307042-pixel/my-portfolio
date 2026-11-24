@@ -1,0 +1,14 @@
+---
+// 區塊標題：放在一片玻璃標籤上（字不直接壓在鮮豔的漸層上）
+import { u } from '../../../lib/site';
+interface Props { eyebrow: string; title: string; href?: string; linkLabel?: string; lead?: string }
+const { eyebrow, title, href, linkLabel = '查看全部', lead } = Astro.props;
+---
+<div class="sec-head" data-reveal>
+  <div class="sec-tag glass">
+    <p class="eyebrow">{eyebrow}</p>
+    <h2 class="sec-title">{title}</h2>
+    {lead && <p class="sec-lead">{lead}</p>}
+  </div>
+  {href && <a class="btn btn-glass link-pill" href={u(href)}>{linkLabel}<span class="arrow" aria-hidden="true">→</span></a>}
+</div>

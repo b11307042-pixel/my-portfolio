@@ -1,0 +1,64 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import Media from '../components/Media.astro';
+import Poster from '../components/Poster.astro';
+import { pageNum, n2 } from '../components/num';
+import { getProjects, u } from '../../../lib/site';
+
+const projects = await getProjects();
+const num = await pageNum('/projects/');
+const years = projects.map((x) => (x.data.period || '').match(/\d{4}/)?.[0]).filter(Boolean) as string[];
+const span = years.length ? (Math.min(...years.map(Number)) === Math.max(...years.map(Number)) ? years[0] : `${Math.min(...years.map(Number))}–${Math.max(...years.map(Number))}`) : '';
+---
+<Layout title="作品" page="projects">
+  <PageHead num={num} en="Index" title="作品" lead={`${projects.length} 件作品，每一件都寫下背景、我做了什麼，以及最後的數字。`} note={span ? `Works ${span}` : 'Works'} />
+
+  <section class="pj" data-view="list" data-pj>
+    <div class="pj-bar mono">
+      <span>{n2(projects.length)} entries</span>
+      <span class="pj-cols" aria-hidden="true"><span>Title</span><span>Discipline</span><span>Year</span></span>
+      <div class="pj-toggle" role="group" aria-label="檢視方式">
+        <button type="button" data-v="list" aria-pressed="true">List</button>
+        <button type="button" data-v="grid" aria-pressed="false">Grid</button>
+      </div>
+    </div>
+    <ol class="pj-list">
+      {projects.map((x, i) => (
+        <li class="pj-item" data-up>
+          <a class="pj-a" href={u(`/projects/${x.id}/`)}>
+            <span class="pj-n">{n2(i + 1)}</span>
+            <span class="pj-thumb">
+              {x.data.cover ? <Media src={x.data.cover} alt="" ratio="16 / 10" pos="top" reveal={false} /> : <Poster title={x.data.title} index={i} tags={x.data.tags} period={x.data.period} size="sm" />}
+            </span>
+            <span class="pj-text">
+              <span class:list={['pj-t', kp(x.data.title)]}>{x.data.title}</span>
+              <span class="pj-s">{x.data.summary}</span>
+            </span>
+            <span class="pj-tags mono">{x.data.tags.map((t) => <span>{t}</span>)}</span>
+            <span class="pj-p mono">{x.data.period}</span>
+            <span class="pj-go" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+    {projects.length === 0 && <p class="empty">還沒有作品。把作品寫進 src/content/projects/ 就會出現在這裡。</p>}
+  </section>
+</Layout>
+
+<script>
+  import { gsap, still } from '../../../lib/motion';
+  import { Flip } from 'gsap/Flip';
+  gsap.registerPlugin(Flip);
+  const box = document.querySelector<HTMLElement>('[data-pj]');
+  box?.querySelectorAll<HTMLButtonElement>('.pj-toggle button').forEach((b) => b.addEventListener('click', () => {
+    const v = b.dataset.v!;
+    if (box.dataset.view === v) return;
+    const items = box.querySelectorAll('.pj-item, .pj-thumb, .pj-n, .pj-t');
+    const state = still ? null : Flip.getState(items);
+    box.dataset.view = v;
+    box.querySelectorAll('.pj-toggle button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    if (state) Flip.from(state, { duration: 0.9, ease: 'expo.inOut', stagger: 0.03, nested: true, absolute: false, scale: false });
+  }));
+</script>

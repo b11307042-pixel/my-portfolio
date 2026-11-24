@@ -1,0 +1,46 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import Opener from '../components/Opener.astro';
+import { getExperience, u } from '../../../lib/site';
+import { folio } from '../components/issue';
+
+const exp = await getExperience();
+const page = await folio('/experience/');
+// 依開始年份分組
+const groups: { year: string; items: typeof exp }[] = [];
+for (const e of exp) {
+  const y = (e.data.start.match(/\d{4}/) || [e.data.start])[0];
+  const g = groups.find((x) => x.year === y);
+  g ? g.items.push(e) : groups.push({ year: y, items: [e] });
+}
+---
+<Layout title="經歷" page="experience">
+  <Opener kicker="履歷" en="Chronicle" title="一路走來" lead={exp.length ? `${exp.length} 段經歷，依時間由近到遠。` : '經歷整理中。'} folio={page} />
+
+  {exp.length > 0 ? (
+    <div class="ledger">
+      {groups.map((g) => (
+        <section class="ledger-y">
+          <h2 class="ledger-year it" data-rise>{g.year}</h2>
+          <ol>
+            {g.items.map((e) => (
+              <li class="entry" data-rise>
+                {e.data.type && <p class="entry-type">{e.data.type}</p>}
+                <div class="entry-main">
+                  <p class="entry-p it">{e.data.period}</p>
+                  <h3 class:list={['entry-t', kp(e.data.title)]}>{e.data.title}</h3>
+                  <p class="entry-o">{e.data.org}</p>
+                  <p class="entry-s">{e.data.summary}</p>
+                  {e.data.points.length > 0 && <ul class="entry-pts">{e.data.points.map((pt) => <li>{pt}</li>)}</ul>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </div>
+  ) : (
+    <p class="empty">本期還沒有經歷。實習、打工、社團都可以寫進 src/content/experience/。<a class="ln-a" href={u('/projects/')}>先看作品</a></p>
+  )}
+</Layout>

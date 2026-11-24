@@ -1,0 +1,19 @@
+---
+import Layout from '../Layout.astro';
+import Arrow from '../components/Arrow.astro';
+import { navItems, u } from '../../../lib/site';
+const items = await navItems();
+---
+<Layout title="找不到這一頁" page="404" cta={false}>
+  <section class="nf pad">
+    <div class="ph-meta mono" data-up><span>(Error)</span><span>Page not found</span></div>
+    <h1 class="nf-n"><span class="fit" data-fit data-fit-max="0.6"><span data-hero-name>404</span></span></h1>
+    <div class="nf-b">
+      <p class="nf-t" data-split>這一頁不在這裡，可能搬家了，或網址打錯了。</p>
+      <a class="btn btn-acc" href={u('/')} data-magnet><span>回首頁</span><Arrow /></a>
+    </div>
+    <ul class="nf-l" data-stagger>
+      {items.map((it, i) => <li><a href={u(it.href)}><span class="mono">{String(i + 1).padStart(2, '0')}</span><span>{it.label}</span><span class="mono">{it.en}</span></a></li>)}
+    </ul>
+  </section>
+</Layout>

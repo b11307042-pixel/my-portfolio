@@ -1,0 +1,23 @@
+---
+import { kp } from './kp';
+// 內頁開頭：刊頭列、巨大義大利體英文、直排中文篇名、導言
+import { getProfile } from '../../../lib/site';
+interface Props { kicker: string; en: string; title: string; lead?: string; folio?: string }
+const { kicker, en, title, lead, folio } = Astro.props;
+const p = (await getProfile()).data;
+---
+<header class="op">
+  <div class="op-top" data-fade-hero>
+    <span>{kicker}</span>
+    <span class="op-name">{p.name}</span>
+    <span class="it">{folio}</span>
+  </div>
+  <div class="op-main">
+    <div class="op-text">
+      <p class="op-en it" data-mast>{en}</p>
+      {lead && <p class:list={['op-lead', kp(lead)]} data-ink-hero>{lead}</p>}
+      <slot />
+    </div>
+    <h1 class="op-v" data-vert>{title}</h1>
+  </div>
+</header>

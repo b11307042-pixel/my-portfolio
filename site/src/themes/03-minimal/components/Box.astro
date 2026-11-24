@@ -1,0 +1,12 @@
+---
+// 像素視窗：4px 缺角外框＋階梯陰影，上面可以有標題列
+interface Props { title?: string; meta?: string; tone?: 'gold' | 'coral' | 'mint' | 'sky' | 'lilac' | 'line'; class?: string; tag?: string; [k: string]: any }
+const { title, meta, tone = 'line', class: cls, tag = 'div', ...rest } = Astro.props;
+const Tag = tag as any;
+---
+<Tag class:list={['box', `t-${tone}`, cls]} {...rest}>
+  {title && (
+    <div class="box-bar"><span class="box-t">{title}</span>{meta && <span class="box-m">{meta}</span>}<span class="box-x" aria-hidden="true"><i></i><i></i></span></div>
+  )}
+  <slot />
+</Tag>

@@ -1,0 +1,61 @@
+---
+import Layout from '../Layout.astro';
+import Crumbs from '../components/Crumbs.astro';
+import Sec from '../components/Sec.astro';
+import { u, img } from '../../../lib/site';
+import { isTall } from '../components/imgsize';
+import { render } from 'astro:content';
+const { entry, index = 0, total = 1, prev, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const cover = img(d.cover);
+const host = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+const tall = d.gallery.filter((g: any) => isTall(g.src));
+const wide = d.gallery.filter((g: any) => !isTall(g.src));
+const coverTall = isTall(d.cover);
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="project">
+  <header class="ph">
+    <Crumbs items={[{ href: '/projects/', label: '作品' }, { label: `${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}` }]} />
+    <h1 class="ph-t" data-in>{d.title}</h1>
+    <p class="ph-s" data-in>{d.summary}</p>
+  </header>
+
+  <dl class="kv meta" data-in>
+    {d.role && <div><dt>角色</dt><dd>{d.role}</dd></div>}
+    {d.period && <div><dt>期間</dt><dd class="mono">{d.period}</dd></div>}
+    {d.tags.length > 0 && <div><dt>工具</dt><dd>{d.tags.map((t: string) => <span>{t}</span>)}</dd></div>}
+    {d.links.length > 0 && <div><dt>連結</dt><dd class="lk">{d.links.map((l: any) => <a href={u(l.url)} target="_blank" rel="noopener">{l.label}<span class="ext" aria-hidden="true">↗</span></a>)}</dd></div>}
+  </dl>
+
+  {cover ? (
+    <figure class:list={['frame shot no-print', { tall: coverTall }]} data-in>
+      <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i><span class="mono">{d.links[0] ? host(d.links[0].url) : d.title}</span></div>
+      <img src={cover} alt={d.title} loading="eager" />
+    </figure>
+  ) : null}
+
+  {d.results.length > 0 && (
+    <Sec label="成果" id="results">
+      <ol class="results">
+        {d.results.map((r: string, i: number) => <li data-in><span class="d mono">{String(i + 1).padStart(2, '0')}</span><span>{r}</span></li>)}
+      </ol>
+    </Sec>
+  )}
+
+  <Sec label="過程" id="story">
+    <div class="prose" data-in><Content /></div>
+  </Sec>
+
+  {d.gallery.length > 0 && (
+    <Sec label="畫面" id="gallery" class="no-print">
+      {wide.length > 0 && <div class="gal">{wide.map((g: any) => <figure class="frame" data-in><img src={img(g.src)} alt={g.caption || ''} loading="lazy" />{g.caption && <figcaption>{g.caption}</figcaption>}</figure>)}</div>}
+      {tall.length > 0 && <div class:list={['gal tall', `n${Math.min(tall.length, 3)}`]}>{tall.map((g: any) => <figure class="frame" data-in><img src={img(g.src)} alt={g.caption || ''} loading="lazy" />{g.caption && <figcaption>{g.caption}</figcaption>}</figure>)}</div>}
+    </Sec>
+  )}
+
+  <nav class="pager no-print" aria-label="其他作品">
+    {prev ? <a href={u(`/projects/${prev.id}/`)} data-key="prev"><span class="mono"><kbd class="kbd">←</kbd> 上一個</span><b>{prev.data.title}</b></a> : <span></span>}
+    {next && next.id !== entry.id ? <a class="nx" href={u(`/projects/${next.id}/`)} data-key="next"><span class="mono">下一個 <kbd class="kbd">→</kbd></span><b>{next.data.title}</b></a> : <span></span>}
+  </nav>
+</Layout>

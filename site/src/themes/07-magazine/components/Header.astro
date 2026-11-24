@@ -1,0 +1,39 @@
+---
+import { getProfile, u } from '../../../lib/site';
+import { contents, year, month, season } from './issue';
+const p = (await getProfile()).data;
+const items = await contents();
+const here = Astro.url.pathname;
+const active = (href: string) => (href === '/' ? here === u('/') : here.startsWith(u(href)));
+---
+<header class="hd">
+  <div class="hd-in">
+    <p class="hd-issue"><span class="it">No.</span>{month}<span class="hd-sep"></span>{year} {season}季號</p>
+    <a class="hd-brand" href={u('/')} aria-label={`${p.name}，回首頁`}>
+      {p.nameEn ? <span class="it">{p.nameEn}</span> : <span>{p.name}</span>}
+    </a>
+    <nav class="hd-nav" aria-label="主要導覽">
+      <ol>
+        {items.map((it) => (
+          <li><a href={u(it.href)} aria-current={active(it.href) ? 'page' : undefined}>{it.label}<sup>{it.page}</sup></a></li>
+        ))}
+      </ol>
+    </nav>
+    <button class="hd-menu" type="button" data-menu aria-expanded="false" aria-controls="toc">
+      <span class="hd-menu-zh">目錄</span><span class="it">Contents</span>
+    </button>
+  </div>
+</header>
+<div class="toc-wrap" id="toc">
+  <div class="toc-head">
+    <p class="it">Contents</p>
+    <button type="button" class="toc-close" data-menu-close aria-label="關閉目錄">關閉</button>
+  </div>
+  <p class="toc-title">本期目錄</p>
+  <ol class="toc">
+    {items.map((it) => (
+      <li><a href={u(it.href)} aria-current={active(it.href) ? 'page' : undefined}><span class="toc-l">{it.label}</span><span class="toc-en it">{it.en}</span><span class="toc-dots" aria-hidden="true"></span><span class="toc-p">{it.page}</span></a></li>
+    ))}
+  </ol>
+  <p class="toc-foot">{p.name}{p.location && <> ・ {p.location}</>}</p>
+</div>

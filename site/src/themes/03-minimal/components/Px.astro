@@ -1,0 +1,10 @@
+---
+// 像素圖示（inline SVG、crispEdges）。scale＝每一格幾 px，預設 4（像素對齊）。
+import { rects } from './sprites';
+interface Props { name: string; scale?: number; class?: string; label?: string }
+const { name, scale = 4, class: cls, label } = Astro.props;
+const r = rects(name);
+---
+<svg class:list={['px-art', cls]} viewBox={`0 0 ${r.w} ${r.h}`} width={r.w * scale} height={r.h * scale} shape-rendering="crispEdges" role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'} focusable="false">
+  {r.out.map((q) => <rect x={q.x} y={q.y} width={q.w} height="1" fill={q.f} />)}
+</svg>

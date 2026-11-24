@@ -1,0 +1,31 @@
+---
+// 沒有大頭照時的首頁主視覺：像產品頁的「名片 App」畫面，加上兩三個浮在旁邊的數字小卡。
+import { getProfile, initials } from '../../../lib/site';
+const p = (await getProfile()).data;
+const chips = p.skills.flatMap((s) => s.items).slice(0, 7);
+const floats = p.highlights.slice(0, 3);
+---
+<div class="idc settle">
+  <div class="idc-grid" aria-hidden="true"></div>
+  {floats.map((h, i) => (
+    <div class={`idc-float f${i + 1}`}>
+      <strong>{h.value}</strong><span>{h.label}</span>
+    </div>
+  ))}
+  <div class="idc-card">
+    <div class="idc-head">
+      <span class="idc-mono" aria-hidden="true">{initials(p.name, p.nameEn)}</span>
+      <div>
+        <p class="idc-name">{p.name}</p>
+        {p.nameEn && <p class="idc-en">{p.nameEn}</p>}
+      </div>
+    </div>
+    <p class="idc-role">{p.role}</p>
+    <dl class="idc-rows">
+      {p.status && <div><dt>現在</dt><dd><i class="live" aria-hidden="true"></i>{p.status}</dd></div>}
+      {p.location && <div><dt>地點</dt><dd>{p.location}</dd></div>}
+      {p.email && <div><dt>Email</dt><dd>{p.email}</dd></div>}
+    </dl>
+    {chips.length > 0 && <p class="idc-chips">{chips.map((c) => <span>{c}</span>)}</p>}
+  </div>
+</div>

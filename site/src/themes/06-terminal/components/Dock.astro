@@ -1,0 +1,18 @@
+---
+// 手機：底部 Dock 當導覽列
+import { navItems, u } from '../../../lib/site';
+import Icon from './Icon.astro';
+import { pageIcon } from '../lib';
+const items = await navItems();
+const here = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? here === u('/') : here.startsWith(u(href)));
+---
+<nav class="dock" aria-label="主要導覽（手機）">
+  {items.map((i) => (
+    <a href={u(i.href)} aria-current={isActive(i.href) ? 'page' : undefined}>
+      <Icon kind={(pageIcon[i.href] || { kind: 'doc' }).kind} size={32} />
+      <span>{i.label}</span>
+    </a>
+  ))}
+  <button type="button" data-palette-open><Icon kind="find" size={32} /><span>尋找</span></button>
+</nav>

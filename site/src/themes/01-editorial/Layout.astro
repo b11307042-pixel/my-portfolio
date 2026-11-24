@@ -1,0 +1,135 @@
+---
+// 瑞士編輯風：整站外框。看得見的 12 欄網格、固定頁首、巨大頁尾署名、全站動畫。
+import './styles.css';
+import Seo from '../../shared/Seo.astro';
+import Header from './components/Header.astro';
+import Footer from './components/Footer.astro';
+import { config } from '../../lib/site';
+
+interface Props { title?: string; description?: string; image?: string; page?: string }
+const { title, description, image, page = '' } = Astro.props;
+---
+<!doctype html>
+<html lang={config.lang} data-page={page}>
+<head>
+  <Seo title={title} description={description} image={image} />
+</head>
+<body>
+  <a class="skip" href="#main">跳到內容</a>
+  <div class="cols" aria-hidden="true">{Array.from({ length: 12 }, () => <i></i>)}</div>
+  <Header />
+  <main id="main" class="main">
+    <slot />
+  </main>
+  <Footer />
+  <script>
+    import { gsap, ScrollTrigger, SplitText, still, smoothScroll, onReady } from '../../lib/motion';
+
+    const root = document.documentElement;
+    const lenis = smoothScroll();
+
+    // 手機選單（不管有沒有動畫都要能用）
+    const btn = document.querySelector<HTMLButtonElement>('[data-menu]');
+    const setMenu = (open: boolean) => {
+      root.classList.toggle('menu-open', open);
+      btn?.setAttribute('aria-expanded', String(open));
+      if (btn) btn.querySelector('.hd-menu-l')!.textContent = open ? 'Close' : 'Menu';
+      open ? lenis?.stop() : lenis?.start();
+      if (open && !still) {
+        gsap.from('.menu li', { yPercent: 60, opacity: 0, duration: 0.7, stagger: 0.05, ease: 'expo.out' });
+      }
+    };
+    btn?.addEventListener('click', () => setMenu(!root.classList.contains('menu-open')));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && root.classList.contains('menu-open')) setMenu(false);
+      // 按 G 顯示／隱藏網格（設計師的小彩蛋）
+      const t = e.target as HTMLElement;
+      if ((e.key === 'g' || e.key === 'G') && !e.metaKey && !e.ctrlKey && !/INPUT|TEXTAREA|SELECT/.test(t.tagName)) root.classList.toggle('grid-on');
+    });
+    document.querySelectorAll('[data-top]').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      lenis ? lenis.scrollTo(0, { duration: 1.4 }) : window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
+    }));
+
+    // 中文斷詞：讓 SplitText 依詞拆行，不會把整段當成一個字
+    const ZW = String.fromCharCode(8203);
+    const seg = 'Segmenter' in Intl ? new Intl.Segmenter('zh-Hant', { granularity: 'word' }) : null;
+    // 標題設了 word-break: keep-all（只在標點後換行）時，也只在標點後切，動畫前後的換行才會一樣
+    const prepareText = (t: string, el: Element) =>
+      getComputedStyle(el).wordBreak === 'keep-all' ? t.replace(/([，。、！？；：,.!?;:）」』\s])/g, '$1' + ZW)
+        : seg ? [...seg.segment(t)].map((s) => s.segment).join(ZW) : t;
+    // 拆行（加遮罩），動畫跑完就還原成原本的文字，字母下緣（p、g）不會被遮罩切掉
+    const lines = (el: Element) => SplitText.create(el, { type: 'lines', mask: 'lines', linesClass: 'ln', prepareText, wordDelimiter: ZW });
+
+    onReady(() => {
+      const ease = 'expo.out';
+      // 1. 進場：網格線從上往下畫，頁首、標題一字一字升起
+      const tl = gsap.timeline({ defaults: { ease } });
+      tl.from('.cols i', { scaleY: 0, transformOrigin: '50% 0%', duration: 1.4, stagger: 0.035, ease: 'expo.inOut' }, 0)
+        .from('.hd-in > *', { yPercent: -120, opacity: 0, duration: 0.9, stagger: 0.06 }, 0.35);
+      document.querySelectorAll('[data-hero-chars]').forEach((el) => {
+        const s = SplitText.create(el, { type: 'chars', mask: 'chars' });
+        tl.from(s.chars, { yPercent: 105, duration: 1.3, stagger: 0.06, onComplete: () => s.revert() }, 0.45);
+      });
+      document.querySelectorAll('[data-hero-lines]').forEach((el, i) => {
+        const s = lines(el);
+        tl.from(s.lines, { yPercent: 105, duration: 1.1, stagger: 0.08, onComplete: () => s.revert() }, 0.7 + i * 0.12);
+      });
+      if (document.querySelector('[data-hero-fade]')) tl.from('[data-hero-fade]', { y: 18, opacity: 0, duration: 1, stagger: 0.07 }, 0.9);
+      document.querySelectorAll<HTMLElement>('[data-hero-img]').forEach((el) => {
+        tl.fromTo(el, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.4, ease: 'expo.inOut', clearProps: 'clipPath' }, 0.5);
+        const im = el.querySelector('img');
+        if (im) tl.from(im, { scale: 1.25, duration: 1.8 }, 0.5);
+      });
+
+      // 2. 捲到才出現
+      const once = (trigger: Element, start = 'top 88%') => ({ trigger, start, once: true });
+      document.querySelectorAll('[data-lines]').forEach((el) => {
+        const s = lines(el);
+        gsap.from(s.lines, { yPercent: 105, duration: 1.1, stagger: 0.08, ease, scrollTrigger: once(el), onComplete: () => s.revert() });
+      });
+      document.querySelectorAll('[data-rule]').forEach((el) => {
+        gsap.from(el, { scaleX: 0, transformOrigin: '0% 50%', duration: 1.4, ease: 'expo.inOut', scrollTrigger: once(el, 'top 95%') });
+      });
+      ScrollTrigger.batch('[data-up]', {
+        start: 'top 90%', once: true,
+        onEnter: (els) => gsap.from(els, { y: 40, opacity: 0, duration: 1, stagger: 0.08, ease }),
+      });
+      document.querySelectorAll<HTMLElement>('[data-img]').forEach((el) => {
+        gsap.fromTo(el, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'expo.inOut', clearProps: 'clipPath', scrollTrigger: once(el) });
+        const im = el.querySelector('img');
+        if (im) gsap.from(im, { scale: 1.2, duration: 1.8, ease, scrollTrigger: once(el) });
+      });
+      // 數字跳動：只動數字的部分，最後還原成原本的字
+      document.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
+        const final = el.textContent || '';
+        const n = parseFloat(final.replace(/,/g, ''));
+        if (!isFinite(n)) return;
+        const dec = (final.split('.')[1] || '').length;
+        const o = { v: 0 };
+        gsap.to(o, {
+          v: n, duration: 1.8, ease: 'power3.out', scrollTrigger: once(el),
+          onUpdate: () => { el.textContent = o.v.toFixed(dec); },
+          onComplete: () => { el.textContent = final; },
+        });
+      });
+      // 跑馬燈：捲動越快跑越快，往回捲就反方向
+      document.querySelectorAll<HTMLElement>('[data-marquee]').forEach((el) => {
+        const track = el.querySelector('.mq-track');
+        if (!track) return;
+        const loop = gsap.to(track, { xPercent: -50, duration: 38, ease: 'none', repeat: -1 });
+        let dir = 1;
+        ScrollTrigger.create({
+          trigger: el, start: 'top bottom', end: 'bottom top',
+          onUpdate: (self) => {
+            const v = self.getVelocity();
+            if (Math.abs(v) > 10) dir = v > 0 ? 1 : -1;
+            gsap.to(loop, { timeScale: dir * (1 + Math.min(Math.abs(v) / 400, 5)), duration: 0.3, overwrite: true });
+            gsap.to(loop, { timeScale: dir, duration: 1.2, delay: 0.3, overwrite: false });
+          },
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import SecHead from '../components/SecHead.astro';
+import Media from '../components/Media.astro';
+import { pageNum, n2 } from '../components/num';
+import { getProfile, u } from '../../../lib/site';
+import { render } from 'astro:content';
+
+const entry = await getProfile();
+const p = entry.data;
+const { Content } = await render(entry);
+const num = await pageNum('/about/');
+const photos = p.photos;
+const interests = p.interests.map((s) => { const [a, ...b] = s.split(/[：:]/); return { k: a, v: b.join('：') }; });
+let s = 0; const nx = () => n2(++s);
+---
+<Layout title="關於" page="about">
+  <PageHead num={num} en="About" title={`關於${p.name}`} lead={p.tagline} note={p.role} />
+
+  <section class="ab">
+    <aside class="ab-side">
+      {p.avatar && <Media src={p.avatar} alt={p.name} ratio="4 / 5" gray caption={p.name}><span slot="cap" class="fig">Fig. 01</span></Media>}
+      <dl class="sheet" data-up>
+        <div><dt>Name</dt><dd>{p.name}{p.nameEn && <small>{p.nameEn}</small>}</dd></div>
+        <div><dt>Role</dt><dd>{p.role}</dd></div>
+        {p.location && <div><dt>Based</dt><dd>{p.location}</dd></div>}
+        {p.status && <div><dt>Status</dt><dd class="red">{p.status}</dd></div>}
+        {p.email && <div><dt>Email</dt><dd><a class="ul" href={`mailto:${p.email}`}>{p.email}</a></dd></div>}
+        {(p.links.length > 0 || p.resume) && (
+          <div><dt>Links</dt><dd class="sheet-links">
+            {p.links.map((l) => <a class="ul" href={u(l.url)} target="_blank" rel="noopener">{l.label} ↗</a>)}
+            {p.resume && <a class="ul" href={u(p.resume)} target="_blank" rel="noopener">履歷 PDF ↗</a>}
+          </dd></div>
+        )}
+      </dl>
+    </aside>
+    <div class="ab-body">
+      <p class="mono ab-k">(Biography) 自我介紹</p>
+      <div class="prose prose-lead" data-up><Content /></div>
+    </div>
+  </section>
+
+  {p.highlights.length > 0 && (
+    <section class="ab-hl">
+      {p.highlights.map((h) => <div data-up><p class="ab-hl-v">{h.value}</p><p class="ab-hl-l">{h.label}</p></div>)}
+    </section>
+  )}
+
+  {p.skills.length > 0 && (
+    <section class="sec">
+      <SecHead num={nx()} en="Capabilities" zh="技能與工具" count={`${n2(p.skills.reduce((a, g) => a + g.items.length, 0))} items`} />
+      <dl class="skills">
+        {p.skills.map((g, i) => (
+          <div class="sk" data-up>
+            <dt><span class="mono">{n2(i + 1)}</span>{g.group}</dt>
+            <dd>{g.items.map((it) => <span>{it}</span>)}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )}
+
+  {p.traits.length > 0 && (
+    <section class="sec">
+      <SecHead num={nx()} en="Approach" zh="我怎麼做事" />
+      <ol class="appr">
+        {p.traits.map((t, i) => (
+          <li data-up>
+            <span class="appr-n">{n2(i + 1)}</span>
+            <h3 class={kp(t.title)}>{t.title}</h3>
+            <p>{t.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {photos.length > 0 && (
+    <section class="sec">
+      <SecHead num={nx()} en="Off-screen" zh="螢幕之外" count={`${n2(photos.length)} photos`} />
+      <div class="ab-photos">
+        {photos.map((ph, i) => <Media src={ph} alt="" caption={`${p.name}`}><span slot="cap" class="fig">Fig. {n2(i + 2)}</span></Media>)}
+      </div>
+    </section>
+  )}
+
+  {interests.length > 0 && (
+    <section class="sec">
+      <SecHead num={nx()} en="Interests" zh="興趣" />
+      <ol class="intr">
+        {interests.map((it, i) => (
+          <li data-up><span class="mono">{n2(i + 1)}</span><span class="intr-k">{it.k}</span>{it.v && <span class="intr-v">{it.v}</span>}</li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {p.quote && (
+    <section class="ab-quote">
+      <span class="rule" data-rule></span>
+      <blockquote><span class="qm" aria-hidden="true">“</span><p class={kp(p.quote)} data-lines>{p.quote}</p><cite class="mono">— {p.name}</cite></blockquote>
+    </section>
+  )}
+</Layout>

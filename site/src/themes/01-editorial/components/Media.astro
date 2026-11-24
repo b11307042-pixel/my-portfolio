@@ -1,0 +1,15 @@
+---
+// 圖片：依照片原本的比例排（建置時讀寬高），捲到時由下往上揭開
+import { img } from '../../../lib/site';
+import { dims } from './dims';
+interface Props { src: string; alt?: string; ratio?: string; eager?: boolean; hero?: boolean; caption?: string; pos?: string; class?: string; gray?: boolean; reveal?: boolean }
+const { src, alt = '', ratio, eager = false, hero = false, caption, pos, class: cls, gray = false, reveal = true } = Astro.props;
+const d = dims(src);
+const ar = ratio ?? (d ? `${d.w} / ${d.h}` : '4 / 3');
+---
+<figure class:list={['media', cls, { gray }]}>
+  <div class="media-box" style={`aspect-ratio:${ar}`} data-hero-img={hero ? '' : undefined} data-img={hero || !reveal ? undefined : ''}>
+    <img src={img(src)} alt={alt} width={d?.w} height={d?.h} loading={eager || hero ? 'eager' : 'lazy'} decoding="async" style={pos ? `object-position:${pos}` : undefined} />
+  </div>
+  {caption && <figcaption class="cap"><slot name="cap" />{caption}</figcaption>}
+</figure>

@@ -1,0 +1,35 @@
+---
+import Layout from '../Layout.astro';
+import Buddy from '../components/Buddy.astro';
+import ContactForm from '../../../shared/ContactForm.astro';
+import { getProfile, img } from '../../../lib/site';
+
+const p = (await getProfile()).data;
+const tones = ['lav', 'peach', 'mint', 'butter', 'sky'];
+---
+<Layout title="聯絡" page="contact">
+  <section class="wrap contact">
+    <div class="ct-copy">
+      <p class="kicker" data-in><span class="kicker-dot"></span>Say hello</p>
+      <h1 class="ct-title" data-in>來聊聊吧</h1>
+      <p class="ct-lead" data-in>{p.status ? `${p.status}。` : ''}實習、合作，或只是想問問題，都歡迎寫信給我，我通常一兩天內回覆。</p>
+      {p.email && (
+        <div class="mail-pill clay" data-in>
+          <span class="mail-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="4" /><path d="M4 7l8 6 8-6" /></svg></span>
+          <a href={`mailto:${p.email}`}>{p.email}</a>
+          <button type="button" class="btn btn-sm btn-main" data-copy={p.email} data-squish><span data-copy-label>複製</span></button>
+        </div>
+      )}
+      {p.links.length > 0 && (
+        <ul class="ct-links" data-in>
+          {p.links.map((l, i) => <li><a class={`ct-link t-${tones[i % tones.length]}`} href={l.url} target="_blank" rel="noopener" data-squish><span class="dot"></span>{l.label}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" /></svg></a></li>)}
+        </ul>
+      )}
+      {p.resume && <a class="btn btn-soft" href={img(p.resume)} target="_blank" rel="noopener" data-in data-squish>下載履歷 PDF</a>}
+    </div>
+    <div class="ct-form-wrap" data-in>
+      <Buddy class="ct-buddy" />
+      <div class="ct-form clay"><ContactForm email={p.email} /></div>
+    </div>
+  </section>
+</Layout>

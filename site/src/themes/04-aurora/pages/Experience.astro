@@ -1,0 +1,43 @@
+---
+import Layout from '../Layout.astro';
+import { getExperience, u } from '../../../lib/site';
+const exp = await getExperience();
+const types = [...new Set(exp.map((x) => x.data.type).filter(Boolean))];
+---
+<Layout title="經歷" page="experience">
+  <section class="page-hero wrap glass glass-xl" data-pane>
+    <p class="eyebrow" data-intro>Experience · {String(exp.length).padStart(2, '0')}</p>
+    <h1 class="page-title"><span data-split>經歷</span></h1>
+    <p class="page-lead" data-intro>實習、打工、社團和比賽，每一段都留下了一點做事的方法。</p>
+    {types.length > 0 && <p class="chips" data-intro>{types.map((t) => <span class="chip">{t} · {exp.filter((x) => x.data.type === t).length}</span>)}</p>}
+  </section>
+
+  {exp.length > 0 ? (
+    <section class="wrap timeline">
+      <span class="tl-rail" aria-hidden="true"><span class="tl-fill" data-line></span></span>
+      <ol>
+        {exp.map((x, i) => (
+          <li class="tl-item" data-reveal>
+            <span class:list={['tl-node', `t-${['pink', 'blue', 'lime', 'orange'][i % 4]}`]} aria-hidden="true"></span>
+            <article class="glass tl-card" data-tilt>
+              <div class="tl-when">
+                <span class="tl-period">{x.data.period}</span>
+                {x.data.type && <span class="chip chip-accent">{x.data.type}</span>}
+              </div>
+              <h2>{x.data.title}</h2>
+              <p class="tl-org">{x.data.org}</p>
+              <p class="tl-sum">{x.data.summary}</p>
+              {x.data.points.length > 0 && <ul class="tl-points">{x.data.points.map((pt) => <li>{pt}</li>)}</ul>}
+            </article>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ) : (
+    <section class="wrap empty glass">
+      <p class="empty-title">第一段經歷，正在路上</p>
+      <p>課堂專題、社團、打工都算經歷，整理好就會放在這裡。</p>
+      <a class="btn btn-glass" href={u('/projects/')}>先看作品</a>
+    </section>
+  )}
+</Layout>

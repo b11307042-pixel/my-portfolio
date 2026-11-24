@@ -1,0 +1,32 @@
+---
+import { getProfile, navItems, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const items = (await navItems()).filter((i) => i.href !== '/');
+const path = Astro.url.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '') || '/';
+const on = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+<header class="nav" data-nav>
+  <div class="nav-in">
+    <a class="nav-brand" href={u('/')} aria-label="回首頁">
+      <span class="nav-dot" aria-hidden="true"></span>
+      <span>{p.name}</span>
+      {p.nameEn && <span class="nav-en">{p.nameEn}</span>}
+    </a>
+    <nav class="nav-links" aria-label="主要">
+      {items.filter((i) => i.href !== '/contact/').map((i) => (
+        <a href={u(i.href)} aria-current={on(i.href) ? 'page' : undefined}>{i.label}</a>
+      ))}
+    </nav>
+    <a class="nav-cta" href={u('/contact/')}>聯絡我</a>
+    <button class="nav-burger" type="button" aria-label="開啟選單" aria-expanded="false" aria-controls="sheet" data-burger>
+      <span></span><span></span>
+    </button>
+  </div>
+</header>
+<div class="sheet" id="sheet" data-sheet>
+  <nav class="sheet-in" aria-label="手機選單">
+    <a href={u('/')} aria-current={on('/') ? 'page' : undefined}>首頁</a>
+    {items.map((i) => <a href={u(i.href)} aria-current={on(i.href) ? 'page' : undefined}>{i.label}</a>)}
+  </nav>
+  {p.email && <a class="sheet-mail" href={`mailto:${p.email}`}>{p.email}</a>}
+</div>

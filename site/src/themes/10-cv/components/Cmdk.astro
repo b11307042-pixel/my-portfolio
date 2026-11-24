@@ -1,0 +1,47 @@
+---
+// ⌘K 指令面板：跳頁、看作品、複製 Email、列印履歷。手機上也當選單用。
+import { getProfile, getProjects, getPosts, navItems, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const nav = await navItems();
+const projects = await getProjects();
+const posts = (await getPosts()).slice(0, 5);
+---
+<dialog class="cmdk" data-cmdk aria-label="快速跳頁">
+  <div class="cmdk-box">
+    <div class="cmdk-in">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <input type="text" placeholder="要去哪裡？輸入關鍵字…" aria-label="搜尋頁面與作品" autocomplete="off" spellcheck="false" data-cmdk-q />
+      <kbd class="kbd">esc</kbd>
+    </div>
+    <div class="cmdk-list" role="listbox" data-cmdk-list>
+      <p class="cmdk-g">頁面</p>
+      {nav.map((n, i) => (
+        <a class="cmdk-it" role="option" href={u(n.href)} data-k={`${n.label} ${n.en}`}>
+          <span>{n.label}<em>{n.en}</em></span><kbd class="kbd">{i + 1}</kbd>
+        </a>
+      ))}
+      {projects.length > 0 && <p class="cmdk-g">作品</p>}
+      {projects.map((x) => (
+        <a class="cmdk-it" role="option" href={u(`/projects/${x.id}/`)} data-k={`${x.data.title} ${x.data.tags.join(' ')}`}>
+          <span>{x.data.title}<em>{x.data.period}</em></span>
+        </a>
+      ))}
+      {posts.length > 0 && <p class="cmdk-g">文章</p>}
+      {posts.map((x) => (
+        <a class="cmdk-it" role="option" href={u(`/blog/${x.id}/`)} data-k={`${x.data.title} ${x.data.tags.join(' ')}`}>
+          <span>{x.data.title}</span>
+        </a>
+      ))}
+      <p class="cmdk-g">動作</p>
+      {p.email && <button type="button" class="cmdk-it" role="option" data-copy={p.email} data-k="複製 email copy 信箱"><span>複製 Email<em>{p.email}</em></span></button>}
+      <button type="button" class="cmdk-it" role="option" data-print data-k="列印 履歷 print pdf resume"><span>列印成履歷<em>PDF</em></span><kbd class="kbd">⌘P</kbd></button>
+      {p.links.map((l) => (
+        <a class="cmdk-it" role="option" href={u(l.url)} target="_blank" rel="noopener" data-k={l.label}>
+          <span>{l.label}<em>外部連結</em></span><span aria-hidden="true">↗</span>
+        </a>
+      ))}
+      <p class="cmdk-empty" data-cmdk-empty hidden>沒有符合的項目</p>
+    </div>
+    <div class="cmdk-foot"><span><kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd> 選擇</span><span><kbd class="kbd">↵</kbd> 開啟</span><span><kbd class="kbd">⌘</kbd><kbd class="kbd">K</kbd> 開關</span></div>
+  </div>
+</dialog>

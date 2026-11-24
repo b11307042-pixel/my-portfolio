@@ -1,0 +1,96 @@
+---
+import Layout from '../Layout.astro';
+import Px from '../components/Px.astro';
+import { render, type CollectionEntry } from 'astro:content';
+import { u, img } from '../../../lib/site';
+import { loot } from '../components/sprites';
+import { pad, tones } from '../components/game';
+
+interface Props { entry: CollectionEntry<'projects'>; index: number; total: number; prev?: CollectionEntry<'projects'>; next?: CollectionEntry<'projects'> }
+const { entry, index, total, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const cover = img(d.cover);
+const tone = tones[index % tones.length];
+const host = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="project">
+  <header class="ph wrap case-head">
+    <p class="ph-stage" data-in>
+      <a class="back" href={u('/projects/')}><Px name="cursor" scale={2} class="flip" />任務看板</a>
+      <span class="ph-chip">QUEST {pad(index + 1)} / {pad(total)}</span>
+    </p>
+    <h1 class="ph-t case-t" data-in>{d.title}</h1>
+    <p class="ph-lead" data-in>{d.summary}</p>
+  </header>
+
+  <section class="wrap case-top">
+    <div class={`case-shot box t-${tone}`} data-in>
+      <div class="box-bar"><span class="box-t">{d.links[0] ? host(d.links[0].url) : `QUEST ${pad(index + 1)}`}</span><span class="box-x" aria-hidden="true"><i></i><i></i></span></div>
+      {cover ? (
+        <img src={cover} alt={`${d.title} 主畫面`} loading="eager" />
+      ) : (
+        <div class="qc-shot empty big"><span class="qc-loot"><Px name={loot[index % loot.length]} scale={12} class="bob" /><span class="qc-loot-t">{d.tags[0] || 'TREASURE'}</span></span></div>
+      )}
+    </div>
+    <aside class="case-info box t-line" data-in>
+      <div class="box-bar"><span class="box-t">QUEST INFO</span></div>
+      <dl class="info">
+        {d.role && <div><dt>CLASS</dt><dd>{d.role}</dd></div>}
+        {d.period && <div><dt>TIME</dt><dd>{d.period}</dd></div>}
+        {d.tags.length > 0 && <div><dt>TAGS</dt><dd class="info-tags">{d.tags.map((t) => <span class="chip">{t}</span>)}</dd></div>}
+      </dl>
+      {d.links.length > 0 && (
+        <div class="info-links">
+          {d.links.map((l, i) => <a class:list={['pbtn', i ? 't-line' : 't-gold']} href={l.url} target="_blank" rel="noopener"><Px name="cursor" scale={2} />{l.label}<small>{host(l.url)}</small></a>)}
+        </div>
+      )}
+    </aside>
+  </section>
+
+  {d.results.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h"><h2 class="sec-t"><span class="sec-k">REWARDS</span>任務獎勵</h2></div>
+      <ul class="rewards">
+        {d.results.map((r, i) => (
+          <li class={`reward box t-${tones[(index + i) % 4]}`} data-rise>
+            <span class="reward-ico"><Px name={i === 0 ? 'chest' : i === 1 ? 'coin' : 'gem'} scale={i === 0 ? 4 : i === 1 ? 6 : 4} /></span>
+            <span class="reward-k">+ REWARD {pad(i + 1)}</span>
+            <p>{r}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="sec wrap case-body">
+    <div class="box t-line lore" data-rise>
+      <div class="box-bar"><span class="box-t">QUEST LOG</span><span class="box-m">任務過程</span><span class="box-x" aria-hidden="true"><i></i><i></i></span></div>
+      <div class="prose lore-in"><Content /></div>
+    </div>
+  </section>
+
+  {d.gallery.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h"><h2 class="sec-t"><span class="sec-k">SCREENS</span>更多畫面</h2></div>
+      <div class:list={['gal', `n${Math.min(d.gallery.length, 2)}`]}>
+        {d.gallery.map((g, i) => (
+          <figure class={`gal-f box t-${tones[(index + i + 1) % 4]}`} data-rise>
+            <img src={img(g.src)} alt={g.caption || `${d.title} 畫面 ${i + 1}`} loading="lazy" />
+            {g.caption && <figcaption>{g.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {next && next.id !== entry.id && (
+    <section class="sec wrap">
+      <a class="next box t-gold" href={u(`/projects/${next.id}/`)}>
+        <span class="next-k">NEXT QUEST</span>
+        <span class="next-t">{next.data.title}</span>
+        <span class="next-go"><Px name="cursor" scale={4} class="nudge" /></span>
+      </a>
+    </section>
+  )}
+</Layout>

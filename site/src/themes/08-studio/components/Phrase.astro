@@ -1,0 +1,7 @@
+---
+// 中文標題斷行：優先在標點後換行（「把複雜的流程，」「做成每個人…」），太長才在句子中間斷
+interface Props { text?: string }
+const { text = '' } = Astro.props;
+const parts = text.match(/[^，。、；：！？,;!?]+[，。、；：！？,;!?]*\s*|[，。、；：！？,;!?]+/g) || [text];
+---
+{parts.map((s) => <span class="phr">{s}</span>)}

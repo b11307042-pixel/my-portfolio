@@ -1,0 +1,11 @@
+---
+// 內頁開頭：超大英文標題＋中文小標＋數量
+interface Props { en: string; zh: string; count?: number; lead?: string }
+const { en, zh, count, lead } = Astro.props;
+---
+<header class="ph pad">
+  <div class="ph-meta mono" data-up><span>({zh})</span>{count !== undefined && <span>Total — {String(count).padStart(2, '0')}</span>}</div>
+  <h1 class="ph-title"><span class="ph-en" data-fit data-fit-max="0.2" data-split>{en}</span>{count !== undefined && <sup class="ph-count mono">({String(count).padStart(2, '0')})</sup>}</h1>
+  {lead && <p class="ph-lead" data-up>{lead}</p>}
+  <slot />
+</header>

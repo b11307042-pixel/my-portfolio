@@ -1,0 +1,44 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import { getPosts, u, img, readMinutes } from '../../../lib/site';
+
+const posts = await getPosts();
+const colors = ['y', 'p', 'b', 'm'];
+const mo = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+---
+<Layout title="文章" page="blog">
+  <PageHead en="WRITING" title="寫下來的事" lead="做作品、實習、上課時想通的事，整理成筆記。" color="o" count={posts.length} countLabel="篇文章" />
+
+  <section class="wrap sec-tight">
+    {posts.length > 0 ? (
+      <ol class="plist">
+        {posts.map((x, i) => (
+          <li data-rise>
+            <a class="prow" href={u(`/blog/${x.id}/`)}>
+              <span class={`pdate c-${colors[i % 4]}`}>
+                <b>{String(x.data.date.getDate()).padStart(2, '0')}</b>
+                <span>{mo[x.data.date.getMonth()]} {x.data.date.getFullYear()}</span>
+              </span>
+              <span class="pmain">
+                <span class="ptitle">{x.data.title}</span>
+                <span class="psum">{x.data.summary}</span>
+                <span class="pmeta">
+                  {x.data.tags.map((t) => <span class="ptag">#{t}</span>)}
+                  <span class="pmin">{readMinutes(x.body)} 分鐘</span>
+                </span>
+              </span>
+              {x.data.cover ? (
+                <span class="pcover"><img src={img(x.data.cover)} alt="" loading="lazy" /></span>
+              ) : (
+                <span class="parrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13M12 5l7 7-7 7" /></svg></span>
+              )}
+            </a>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <div class="empty"><strong>第一篇正在寫</strong><p>寫好會放在這裡。</p></div>
+    )}
+  </section>
+</Layout>

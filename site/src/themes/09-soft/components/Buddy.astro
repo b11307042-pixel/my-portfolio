@@ -1,0 +1,20 @@
+---
+// 沒有照片時的小夥伴：一顆黏土球，眼睛會跟著游標、會眨眼
+interface Props { mood?: 'happy' | 'oops'; class?: string; label?: string }
+const { mood = 'happy', class: cls = '', label } = Astro.props;
+---
+<div class:list={['buddy', `buddy-${mood}`, cls]} data-buddy role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'}>
+  <div class="buddy-body">
+    <div class="buddy-face" data-face>
+      <span class="eye" data-eye><i></i></span>
+      <span class="eye" data-eye><i></i></span>
+      <span class="cheek"></span>
+      <span class="cheek"></span>
+      {mood === 'happy'
+        ? <svg class="mouth" viewBox="0 0 40 20"><path d="M5 5 Q20 22 35 5" /></svg>
+        : <svg class="mouth" viewBox="0 0 40 20"><ellipse cx="20" cy="11" rx="6" ry="7" /></svg>}
+    </div>
+    <span class="buddy-shine"></span>
+  </div>
+  <span class="buddy-shadow"></span>
+</div>

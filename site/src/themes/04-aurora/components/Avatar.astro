@@ -1,0 +1,11 @@
+---
+// 玻璃泡泡頭像：有照片放照片；沒有照片時，用名字縮寫做成漸層字，外圈是一圈折射光。
+import { getProfile, img, initials } from '../../../lib/site';
+interface Props { size?: 'sm' | 'md' | 'lg'; photo?: boolean }
+const { size = 'md', photo = false } = Astro.props;
+const p = (await getProfile()).data;
+const src = photo ? img(p.avatar) : undefined;
+---
+<span class:list={['bubble', `bb-${size}`, src && 'has-photo']} aria-hidden="true">
+  {src ? <img src={src} alt="" loading="eager" /> : <span class="bb-text">{initials(p.name, p.nameEn)}</span>}
+</span>

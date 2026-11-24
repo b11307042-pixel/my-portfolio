@@ -1,0 +1,44 @@
+---
+// 08 作品集工作室：全站外框（左側欄＋內容區、開場布幕、View 游標）
+import './styles.css';
+import Seo from '../../shared/Seo.astro';
+import Side from './components/Side.astro';
+import Footer from './components/Footer.astro';
+import { config, getProfile } from '../../lib/site';
+interface Props { title?: string; description?: string; image?: string; page?: string; cta?: boolean }
+const { title, description, image, page = '', cta = true } = Astro.props;
+const p = (await getProfile()).data;
+---
+<!doctype html>
+<html lang={config.lang} data-page={page}>
+<head>
+  <Seo title={title} description={description} image={image} />
+  <script is:inline>
+    // 開場布幕：只有「會播動畫」時才先蓋住畫面；截圖（?shot）和減少動態都不會蓋
+    (function () {
+      if (location.search.indexOf('shot') > -1 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var d = document.documentElement; d.classList.add('intro');
+      setTimeout(function () { if (!d.dataset.introRan) d.classList.remove('intro'); }, 3500);
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到內容</a>
+  <div class="curtain" aria-hidden="true">
+    <div class="curtain-in">
+      <span class="curtain-name">{p.nameEn || p.name}</span>
+      <span class="curtain-n mono"><span data-count-intro>00</span></span>
+    </div>
+  </div>
+  <Side />
+  <div class="stage">
+    <main id="main"><slot /></main>
+    <Footer cta={cta} />
+  </div>
+  <div class="vcur" aria-hidden="true"><span>View</span></div>
+  <script>
+    import { init } from './components/fx';
+    init();
+  </script>
+</body>
+</html>

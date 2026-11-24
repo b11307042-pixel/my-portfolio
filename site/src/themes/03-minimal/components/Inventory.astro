@@ -1,0 +1,21 @@
+---
+// 技能＝背包：每一組是一格分頁，每個技能是一格道具
+import Px from './Px.astro';
+import { pad } from './game';
+interface Props { skills: { group: string; items: string[] }[] }
+const { skills } = Astro.props;
+const icons = ['gem', 'potion', 'scroll', 'key', 'sword', 'chest', 'star', 'heart'];
+---
+<div class="inv box t-line">
+  <div class="box-bar"><span class="box-t">INVENTORY</span><span class="box-m">{skills.reduce((n, s) => n + s.items.length, 0)} ITEMS</span><span class="box-x" aria-hidden="true"><i></i><i></i></span></div>
+  <div class="inv-in">
+    {skills.map((s, gi) => (
+      <section class="inv-g" data-rise>
+        <h3 class="inv-h"><Px name={icons[gi % icons.length]} scale={2} />{s.group}<span>x{pad(s.items.length)}</span></h3>
+        <ul class="inv-grid">
+          {s.items.map((it, i) => <li class={`slot g${gi % 4}`}><span class="slot-n">{pad(i + 1)}</span>{it}</li>)}
+        </ul>
+      </section>
+    ))}
+  </div>
+</div>

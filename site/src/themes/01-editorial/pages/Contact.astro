@@ -1,0 +1,34 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import ContactForm from '../../../shared/ContactForm.astro';
+import { pageNum } from '../components/num';
+import { getProfile, u } from '../../../lib/site';
+
+const p = (await getProfile()).data;
+const num = await pageNum('/contact/');
+---
+<Layout title="聯絡" page="contact">
+  <PageHead num={num} en="Contact" title="一起聊聊" lead="實習、合作，或只是想交流，都歡迎來信。" note={p.location} />
+
+  <section class="ct">
+    <div class="ct-info">
+      {p.email && (
+        <div class="ct-mail" data-up>
+          <p class="mono">(Email)</p>
+          <a class="ul" href={`mailto:${p.email}`}>{p.email}</a>
+        </div>
+      )}
+      <dl class="sheet" data-up>
+        {p.status && <div><dt>Status</dt><dd class="red">{p.status}</dd></div>}
+        {p.location && <div><dt>Based</dt><dd>{p.location}</dd></div>}
+        <div><dt>Reply</dt><dd>通常一兩天內回覆</dd></div>
+        {p.links.length > 0 && <div><dt>Elsewhere</dt><dd class="sheet-links">{p.links.map((l) => <a class="ul" href={u(l.url)} target="_blank" rel="noopener">{l.label} ↗</a>)}</dd></div>}
+      </dl>
+    </div>
+    <div class="ct-form" data-up>
+      <p class="mono ct-k">(Form) 留言給我</p>
+      <ContactForm email={p.email} />
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,21 @@
+// 聯絡表單 Worker：收表單 → 存進 D1 → （有網域才）寄信通知你
+// 照 README.md 的步驟做，不要自己改這裡的名字。
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "my-contact",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+  "vars": {
+    // 允許哪個網站送表單過來；上線後改成你的網址，例如 "https://yourname.github.io"
+    "ALLOWED_ORIGIN": "*",
+    // 寄信用（步驟 5，有網域才填）
+    "MAIL_TO": "",
+    "MAIL_FROM": ""
+  }
+
+  // ↓ 步驟 2 的指令會自動在這裡加上 d1_databases，不用手寫
+
+  // ↓ 步驟 5（有網域才做）：把下面這段的 // 拿掉
+  // ,"send_email": [{ "name": "EMAIL" }]
+}

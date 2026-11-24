@@ -1,0 +1,31 @@
+---
+import Layout from '../Layout.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { u, img, fmtDate, readMinutes } from '../../../lib/site';
+import { render } from 'astro:content';
+const { entry, prev, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="post">
+  <article>
+    <header class="ph">
+      <Crumbs items={[{ href: '/blog/', label: '文章' }, { label: fmtDate(d.date) }]} />
+      <h1 class="ph-t" data-in>{d.title}</h1>
+      <p class="ph-s" data-in>{d.summary}</p>
+      <p class="ph-tags mono" data-in>
+        <span><time datetime={d.date.toISOString()}>{fmtDate(d.date)}</time></span>
+        <span>{readMinutes(entry.body)} 分鐘</span>
+        {d.tags.map((t: string) => <span>#{t}</span>)}
+      </p>
+    </header>
+    {img(d.cover) && <figure class="frame" data-in><img src={img(d.cover)} alt="" /></figure>}
+    <div class="prose post" data-in><Content /></div>
+  </article>
+  {(prev || next) && (
+    <nav class="pager no-print" aria-label="其他文章">
+      {next ? <a href={u(`/blog/${next.id}/`)} data-key="prev"><span class="mono"><kbd class="kbd">←</kbd> 較早</span><b>{next.data.title}</b></a> : <span></span>}
+      {prev ? <a class="nx" href={u(`/blog/${prev.id}/`)} data-key="next"><span class="mono">較新 <kbd class="kbd">→</kbd></span><b>{prev.data.title}</b></a> : <span></span>}
+    </nav>
+  )}
+</Layout>

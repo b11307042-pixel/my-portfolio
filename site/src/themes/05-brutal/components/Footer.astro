@@ -1,0 +1,46 @@
+---
+import Marquee from './Marquee.astro';
+import Badge from './Badge.astro';
+import { getProfile, navItems, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const items = await navItems();
+const year = new Date().getFullYear();
+---
+<footer class="ft">
+  <Marquee items={[p.status || 'OPEN TO WORK', 'LET’S TALK', p.role.split('｜')[0]]} color="p" dir="right" size="lg" />
+  <div class="wrap ft-cta">
+    <Badge class="ft-badge" text="SAY HI · SAY HELLO · SAY HI · SAY HELLO · " color="var(--mint)" />
+    <p class="ft-kicker">有想法、有職缺，或只是想聊聊</p>
+    <a class="ft-big" href={p.email ? `mailto:${p.email}` : u('/contact/')}>
+      <span class="ft-big-l">LET’S</span>
+      <span class="ft-big-l ft-big-2">TALK<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18L18 6M8 6h10v10" /></svg></span>
+    </a>
+    <div class="ft-actions">
+      {p.email && <a class="btn btn-y" href={`mailto:${p.email}`}>{p.email}</a>}
+      <a class="btn btn-w" href={u('/contact/')}>聯絡表單</a>
+    </div>
+  </div>
+  <div class="wrap ft-grid">
+    <div class="ft-col">
+      <p class="ft-h">導覽</p>
+      <ul>{items.map((it) => <li><a href={u(it.href)}>{it.label}</a></li>)}</ul>
+    </div>
+    {p.links.length > 0 && (
+      <div class="ft-col">
+        <p class="ft-h">在別的地方找到我</p>
+        <ul>{p.links.map((l) => <li><a href={l.url} target="_blank" rel="noopener">{l.label}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" /></svg></a></li>)}</ul>
+      </div>
+    )}
+    <div class="ft-col ft-me">
+      <p class="ft-h">{p.name}{p.nameEn && <span> / {p.nameEn}</span>}</p>
+      <p>{p.role}</p>
+      {p.location && <p>{p.location}</p>}
+    </div>
+  </div>
+  <div class="wrap ft-bottom">
+    <span>© {year} {p.nameEn || p.name}</span>
+    <button class="ft-top" type="button" data-totop>回到最上面
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+    </button>
+  </div>
+</footer>

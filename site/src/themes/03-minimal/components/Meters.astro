@@ -1,0 +1,17 @@
+---
+// 亮點＝能力值：大數字（會往上跳）＋一格一格的量表
+import { meters, tones } from './game';
+interface Props { items: { value: string; label: string }[] }
+const { items } = Astro.props;
+const pct = meters(items.map((h) => h.value));
+---
+<ul class:list={['meters', `n${Math.min(items.length, 4)}`]}>
+  {items.map((h, i) => (
+    <li class={`meter box t-${tones[i % tones.length]}`} data-rise>
+      <span class="meter-k">STAT {String(i + 1).padStart(2, '0')}</span>
+      <strong class="meter-v" data-count>{h.value}</strong>
+      <span class="meter-l">{h.label}</span>
+      <span class="bar seg"><span class="bar-f" style={`width:${pct[i]}%`}></span></span>
+    </li>
+  ))}
+</ul>

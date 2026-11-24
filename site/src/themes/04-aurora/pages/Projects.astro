@@ -1,0 +1,51 @@
+---
+import Layout from '../Layout.astro';
+import WorkCard from '../components/WorkCard.astro';
+import { getProjects } from '../../../lib/site';
+const projects = await getProjects();
+const tags = [...new Set(projects.flatMap((x) => x.data.tags))].slice(0, 10);
+---
+<Layout title="作品" page="projects">
+  <section class="page-hero wrap glass glass-xl" data-pane>
+    <p class="eyebrow" data-intro>Work · {String(projects.length).padStart(2, '0')}</p>
+    <h1 class="page-title"><span data-split>作品</span></h1>
+    <p class="page-lead" data-intro>每個作品都寫了背景、我負責的部分，和最後留下來的數字。</p>
+  </section>
+
+  {projects.length > 0 ? (
+    <section class="wrap">
+      {tags.length > 1 && projects.length > 2 && (
+        <div class="filters glass" role="toolbar" aria-label="依技術篩選" data-reveal>
+          <button type="button" class="filter is-on" data-filter="" aria-pressed="true">全部</button>
+          {tags.map((t) => <button type="button" class="filter" data-filter={t} aria-pressed="false">{t}</button>)}
+        </div>
+      )}
+      <div class="work-grid work-grid-all">
+        {projects.map((e, i) => <WorkCard entry={e} index={i} wide={projects.length === 1 || (projects.length % 2 === 1 && i === 0)} />)}
+      </div>
+    </section>
+  ) : (
+    <section class="wrap empty glass">
+      <p class="empty-title">作品整理中</p>
+      <p>第一個作品快要放上來了。</p>
+    </section>
+  )}
+</Layout>
+
+<script>
+  import { gsap, still } from '../../../lib/motion';
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const cards = document.querySelectorAll<HTMLElement>('.work-grid-all .work');
+  buttons.forEach((b) => b.addEventListener('click', () => {
+    const f = b.dataset.filter || '';
+    buttons.forEach((x) => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+    const shown: HTMLElement[] = [];
+    cards.forEach((c) => {
+      const ok = !f || (c.dataset.tags || '').split('|').includes(f);
+      c.hidden = !ok;
+      if (ok) shown.push(c);
+    });
+    document.querySelector('.work-grid-all')?.classList.toggle('filtered', !!f);
+    if (!still) gsap.fromTo(shown, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.05, ease: 'expo.out', clearProps: 'all' });
+  }));
+</script>

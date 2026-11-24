@@ -1,0 +1,35 @@
+---
+import Layout from '../Layout.astro';
+import ContactForm from '../../../shared/ContactForm.astro';
+import Arrow from '../components/Arrow.astro';
+import { getProfile, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+---
+<Layout title="聯絡" page="contact" cta={false}>
+  <header class="ph pad">
+    <div class="ph-meta mono" data-up><span>(聯絡)</span>{p.status && <span><span class="pulse"></span> {p.status}</span>}</div>
+    <h1 class="ph-title"><span class="ph-en" data-fit data-fit-max="0.2" data-split>Let’s talk</span></h1>
+    <p class="ph-lead" data-up>有職缺、合作，或只是想聊聊作品，都歡迎寫信給我。通常一兩天內回覆。</p>
+  </header>
+  <section class="ct pad">
+    <div class="ct-l" data-up>
+      {p.email && (
+        <a class="ct-mail" href={`mailto:${p.email}`} data-magnet>
+          <span class="mono">(Email)</span>
+          <span class="ct-mail-t">{p.email.split('@')[0]}@<wbr />{p.email.split('@').slice(1).join('@')}</span>
+          <Arrow dir="ne" class="ct-mail-go" />
+        </a>
+      )}
+      <dl class="ct-dl">
+        {p.location && <div><dt class="mono">Based</dt><dd>{p.location}</dd></div>}
+        <div><dt class="mono">Local</dt><dd data-clock>GMT+8</dd></div>
+        {p.links.length > 0 && <div><dt class="mono">Social</dt><dd class="ct-links">{p.links.map((l) => <a class="ul" href={u(l.url)} target="_blank" rel="noopener">{l.label} ↗</a>)}</dd></div>}
+        {p.resume && <div><dt class="mono">Resume</dt><dd><a class="ul" href={u(p.resume)} target="_blank" rel="noopener">下載履歷 ↗</a></dd></div>}
+      </dl>
+    </div>
+    <div class="ct-r" data-up>
+      <p class="mono k">(Message) — 留言</p>
+      <ContactForm email={p.email} />
+    </div>
+  </section>
+</Layout>

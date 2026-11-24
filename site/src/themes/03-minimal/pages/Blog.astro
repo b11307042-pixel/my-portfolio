@@ -1,0 +1,36 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import Px from '../components/Px.astro';
+import { getPosts, u, img, fmtDate, readMinutes } from '../../../lib/site';
+import { pad } from '../components/game';
+const posts = await getPosts();
+---
+<Layout title="文章" page="blog">
+  <PageHead stage="STAGE 05" en="JOURNAL" title="冒險日誌" lead="做作品、工作、上課時想通的事，一篇一篇記下來。" icon="book" count={posts.length} countLabel=" 篇日誌" />
+  <section class="wrap sec-tight">
+    {posts.length > 0 ? (
+      <ol class="jlist">
+        {posts.map((x, i) => (
+          <li data-rise>
+            <a class="jrow box t-line" href={u(`/blog/${x.id}/`)}>
+              <span class="jrow-n">
+                <span class="jrow-k">ENTRY</span>
+                <b>{pad(posts.length - i)}</b>
+              </span>
+              <span class="jrow-main">
+                <span class="jrow-d">{fmtDate(x.data.date)}<span>{readMinutes(x.body)} MIN READ</span></span>
+                <span class="jrow-t">{x.data.title}</span>
+                <span class="jrow-s">{x.data.summary}</span>
+                {x.data.tags.length > 0 && <span class="jrow-tags">{x.data.tags.map((t) => <span class="chip">{t}</span>)}</span>}
+              </span>
+              {x.data.cover ? <span class="jrow-cover"><img src={img(x.data.cover)} alt="" loading="lazy" /></span> : <span class="jrow-go"><Px name="cursor" scale={3} /></span>}
+            </a>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <div class="empty box t-line"><Px name="book" scale={6} class="bob" /><p>第一篇日誌正在寫。</p></div>
+    )}
+  </section>
+</Layout>

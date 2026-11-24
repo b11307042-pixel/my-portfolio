@@ -1,0 +1,20 @@
+---
+import Layout from '../Layout.astro';
+import { navItems, u } from '../../../lib/site';
+const items = await navItems();
+---
+<Layout title="找不到頁面" page="404">
+  <section class="nf">
+    <div class="cs-meta mono" data-hero-fade><span>(Error)</span><span>Page not found</span><span></span><span class="cs-of">404</span></div>
+    <span class="rule"></span>
+    <h1 class="nf-big" aria-label="404"><span data-hero-chars>4<span class="red">0</span>4</span></h1>
+    <div class="nf-foot">
+      <p class="nf-t" data-hero-lines>這一頁不在索引裡。</p>
+      <div class="nf-side" data-hero-fade>
+        <p>網址可能打錯了，或這一頁已經搬家。從這裡回去：</p>
+        <ol class="nf-links">{items.map((it, i) => <li><a class="ul" href={u(it.href)}><span class="mono">{String(i + 1).padStart(2, '0')}</span>{it.label}</a></li>)}</ol>
+        <a class="btn" href={u('/')}><span>回首頁</span><span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+</Layout>

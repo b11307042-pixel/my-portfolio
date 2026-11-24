@@ -1,0 +1,95 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import Buddy from '../components/Buddy.astro';
+import { render } from 'astro:content';
+import { getProfile, img, u } from '../../../lib/site';
+
+const entry = await getProfile();
+const p = entry.data;
+const { Content } = await render(entry);
+const avatar = img(p.avatar);
+const photos = p.photos.map((s) => img(s)!).filter(Boolean).slice(0, 2);
+const tones = ['lav', 'peach', 'mint', 'butter', 'sky'];
+---
+<Layout title="關於" page="about">
+  <PageHead kicker="About me" title={`嗨，我是${p.name}`} lead={p.role} tone="peach" />
+
+  <section class="wrap about-grid">
+    <div class="about-media">
+      {avatar || photos.length ? (
+        <div class:list={['stack', `stack-${(avatar ? 1 : 0) + photos.length}`]}>
+          {avatar && <figure class="portrait portrait-lg" data-rise><img src={avatar} alt={`${p.name} 的照片`} /></figure>}
+          {photos.map((s, i) => <figure class={`snap snap-${i + 1}`} data-rise data-float><img src={s} alt="" loading="lazy" /></figure>)}
+        </div>
+      ) : (
+        <div class="buddy-card clay" data-rise>
+          <Buddy label={`${p.name} 的小夥伴`} />
+          <p class="buddy-name">{p.name}</p>
+          {p.nameEn && <p class="buddy-en">{p.nameEn}</p>}
+        </div>
+      )}
+      <ul class="facts">
+        {p.location && <li class="t-mint"><b>所在</b>{p.location}</li>}
+        {p.status && <li class="t-peach"><b>現在</b>{p.status}</li>}
+      </ul>
+      {p.resume && <a class="btn btn-main" href={img(p.resume)} target="_blank" rel="noopener" data-squish>下載履歷</a>}
+    </div>
+    <div class="clay prose-card prose" data-rise><Content /></div>
+  </section>
+
+  {p.quote && (
+    <section class="wrap sec">
+      <figure class="quote-blob" data-rise>
+        <blockquote>{p.quote}</blockquote>
+        <figcaption>{p.name}</figcaption>
+      </figure>
+    </section>
+  )}
+
+  {p.traits.length > 0 && (
+    <section class="wrap sec">
+      <div class="sec-head center"><div><p class="kicker"><span class="kicker-dot"></span>How I work</p><h2 class="sec-title">我做事的方式</h2></div></div>
+      <ol class="traits">
+        {p.traits.map((t, i) => (
+          <li class="clay" data-rise data-tilt>
+            <span class={`num num-lg t-${tones[i % tones.length]}`}>{i + 1}</span>
+            <h3>{t.title}</h3>
+            <p>{t.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {p.skills.length > 0 && (
+    <section class="wrap sec">
+      <div class="sec-head center"><div><p class="kicker"><span class="kicker-dot"></span>Toolbox</p><h2 class="sec-title">會用的工具</h2></div></div>
+      <div class="skills">
+        {p.skills.map((s, i) => (
+          <div class="skill clay" data-rise>
+            <h3><span class={`dot t-${tones[i % tones.length]}`}></span>{s.group}</h3>
+            <ul class="pills pills-lg">{s.items.map((it) => <li>{it}</li>)}</ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {p.interests.length > 0 && (
+    <section class="wrap sec">
+      <div class="sec-head center"><div><p class="kicker"><span class="kicker-dot"></span>Off screen</p><h2 class="sec-title">下課之後</h2></div></div>
+      <ul class="bubbles bubbles-soft">
+        {p.interests.map((it, i) => {
+          const [h, ...rest] = it.split('：');
+          return <li class={`bubble t-${tones[(i + 2) % tones.length]}`} data-pop><strong class="b-word">{h}</strong>{rest.length > 0 && <span>{rest.join('：')}</span>}</li>;
+        })}
+      </ul>
+    </section>
+  )}
+
+  <section class="wrap sec center-cta" data-rise>
+    <p>看完我是誰，接著看看我做過的東西吧。</p>
+    <a class="btn btn-main btn-lg" href={u('/projects/')} data-squish>看作品<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg></a>
+  </section>
+</Layout>

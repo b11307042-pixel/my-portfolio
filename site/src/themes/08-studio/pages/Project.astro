@@ -1,0 +1,81 @@
+---
+import Layout from '../Layout.astro';
+import Arrow from '../components/Arrow.astro';
+import Media from '../components/Media.astro';
+import Phrase from '../components/Phrase.astro';
+import { u, img } from '../../../lib/site';
+import { render } from 'astro:content';
+const { entry, index = 0, total = 1, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const nn = (n: number) => String(n).padStart(2, '0');
+const nextIdx = next ? (index + 1) % total : 0;
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="project" cta={!next}>
+  <article class="cs">
+    <header class="cs-head pad">
+      <div class="hero-meta mono" data-up>
+        <a class="ul" href={u('/projects/')}>← All work</a>
+        <span>Case study ({nn(index + 1)}/{nn(total)})</span>
+        {d.period && <span>{d.period}</span>}
+      </div>
+      <h1 class="cs-title" data-split>{d.title}</h1>
+      <p class="cs-sum" data-up><Phrase text={d.summary} /></p>
+    </header>
+
+    {(d.cover || d.results.length === 0) && (
+      <div class="cs-cover">
+        <Media project={entry} index={index} ratio={d.cover ? '16 / 9' : '21 / 9'} eager />
+      </div>
+    )}
+
+    {d.results.length > 0 && (
+      <section class="res">
+        <p class="mono res-k">(Outcomes) — 成果</p>
+        <ol class="res-list" data-stagger>
+          {d.results.map((r, i) => <li><span class="mono">{nn(i + 1)}</span><p>{r}</p></li>)}
+        </ol>
+      </section>
+    )}
+
+    <section class="cs-body pad">
+      <aside class="cs-meta">
+        <div class="cs-meta-in">
+          <p class="mono k">(Info)</p>
+          <dl>
+            {d.role && <div><dt class="mono">Role</dt><dd>{d.role}</dd></div>}
+            {d.period && <div><dt class="mono">Period</dt><dd>{d.period}</dd></div>}
+            {d.tags.length > 0 && <div><dt class="mono">Stack</dt><dd><ul class="pills">{d.tags.map((t) => <li>{t}</li>)}</ul></dd></div>}
+          </dl>
+          {d.links.length > 0 && (
+            <div class="cs-links">{d.links.map((l) => <a class="btn btn-line btn-s" href={u(l.url)} target="_blank" rel="noopener"><span>{l.label}</span><Arrow dir="ne" /></a>)}</div>
+          )}
+        </div>
+      </aside>
+      <div class="prose" data-up><Content /></div>
+    </section>
+
+    {d.gallery.length > 0 && (
+      <section class="gal pad">
+        <p class="mono k">(Gallery) — {nn(d.gallery.length)}</p>
+        <div class:list={['gal-grid', `n-${Math.min(d.gallery.length, 3)}`]}>
+          {d.gallery.map((g) => (
+            <figure class="gal-item">
+              <div class="gal-frame" data-media><img class="par-s" src={img(g.src)} alt={g.caption || d.title} loading="lazy" decoding="async" /></div>
+              {g.caption && <figcaption><span class="mono">—</span> {g.caption}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {next && (
+      <a class="nx" href={u(`/projects/${next.id}/`)} data-view data-view-label="Next">
+        {img(next.data.cover) && <span class="nx-bg" aria-hidden="true"><img src={img(next.data.cover)} alt="" loading="lazy" decoding="async" /></span>}
+        <span class="nx-top mono"><span>(Next project)</span><span>{nn(nextIdx + 1)}/{nn(total)}</span></span>
+        <span class="nx-t">{next.data.title}</span>
+        <span class="nx-bot"><span class="nx-s">{next.data.summary}</span><span class="nx-go"><Arrow /></span></span>
+      </a>
+    )}
+  </article>
+</Layout>

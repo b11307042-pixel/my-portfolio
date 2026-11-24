@@ -1,0 +1,20 @@
+---
+// 對話框：左邊頭像（沒有照片用像素角色）、名字牌、打字機文字、閃爍的 ▼
+import Px from './Px.astro';
+import { getProfile, img } from '../../../lib/site';
+interface Props { text: string; speaker?: string; class?: string; big?: boolean }
+const p = (await getProfile()).data;
+const { text, speaker = p.name, class: cls, big = false } = Astro.props;
+const avatar = img(p.avatar);
+---
+<div class:list={['dlg', { big }, cls]}>
+  <div class="dlg-face">
+    {avatar ? <img src={avatar} alt="" loading="lazy" /> : <Px name="hero" scale={big ? 6 : 4} class="bob" />}
+  </div>
+  <div class="dlg-body box t-line">
+    <span class="dlg-who">{speaker}</span>
+    <p class="dlg-text" data-type>{text}</p>
+    <slot />
+    <Px name="down" scale={3} class="dlg-next blink" />
+  </div>
+</div>

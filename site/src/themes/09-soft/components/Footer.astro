@@ -1,0 +1,35 @@
+---
+import Buddy from './Buddy.astro';
+import { getProfile, navItems, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const items = await navItems();
+const year = new Date().getFullYear();
+---
+<footer class="ft">
+  <div class="wrap">
+    <div class="ft-card" data-rise>
+      <Buddy class="ft-buddy" />
+      <div class="ft-copy">
+        <p class="kicker"><span class="kicker-dot"></span>{p.status || '歡迎來信'}</p>
+        <h2 class="ft-title">一起聊聊吧</h2>
+        <p class="ft-lead">有實習機會、合作想法，或只是想認識一下，都很歡迎。</p>
+        <div class="ft-actions">
+          {p.email && <a class="btn btn-main" href={`mailto:${p.email}`} data-squish>{p.email}</a>}
+          <a class="btn btn-soft" href={u('/contact/')} data-squish>填聯絡表單</a>
+        </div>
+      </div>
+    </div>
+    <div class="ft-row">
+      <nav class="ft-nav" aria-label="頁尾導覽">{items.map((it) => <a href={u(it.href)}>{it.label}</a>)}</nav>
+      {p.links.length > 0 && (
+        <ul class="ft-social">{p.links.map((l) => <li><a href={l.url} target="_blank" rel="noopener">{l.label}</a></li>)}</ul>
+      )}
+    </div>
+    <div class="ft-bottom">
+      <span>© {year} {p.name}{p.nameEn && ` · ${p.nameEn}`}</span>
+      <button class="ft-top" type="button" data-totop data-squish>回到上面
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
+      </button>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,30 @@
+---
+import Layout from '../Layout.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { getPosts, u, fmtDate, readMinutes } from '../../../lib/site';
+const list = await getPosts();
+const years = [...new Set(list.map((x) => x.data.date.getFullYear()))];
+---
+<Layout title="文章" page="blog">
+  <header class="ph">
+    <Crumbs items={[{ label: '文章' }]} />
+    <h1 class="ph-t" data-in>文章</h1>
+    <p class="ph-s" data-in>學習筆記和做專案的心得，共 {list.length} 篇。</p>
+  </header>
+  {years.map((y) => (
+    <section class="ygroup" aria-label={String(y)}>
+      <h2 class="yh mono" data-in>{y}</h2>
+      <ol class="blist">
+        {list.filter((x) => x.data.date.getFullYear() === y).map((x) => (
+          <li data-in>
+            <a href={u(`/blog/${x.id}/`)}>
+              <span class="d mono">{fmtDate(x.data.date).slice(5)}</span>
+              <span class="bt"><b>{x.data.title}</b><span>{x.data.summary}</span></span>
+              <span class="bm mono">{readMinutes(x.body)} min</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
+</Layout>

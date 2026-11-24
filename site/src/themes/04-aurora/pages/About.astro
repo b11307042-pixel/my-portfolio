@@ -1,0 +1,101 @@
+---
+import Layout from '../Layout.astro';
+import Avatar from '../components/Avatar.astro';
+import SectionHead from '../components/SectionHead.astro';
+import { getProfile, img, u } from '../../../lib/site';
+import { render } from 'astro:content';
+
+const profile = await getProfile();
+const p = profile.data;
+const { Content } = await render(profile);
+const hero = img(p.photos[0] || p.avatar);
+const more = p.photos.slice(p.photos[0] ? 1 : 0).map((s) => img(s)!).filter(Boolean);
+---
+<Layout title="關於" page="about">
+  <section class="page-hero wrap glass glass-xl" data-pane>
+    <p class="eyebrow" data-intro>About</p>
+    <h1 class="page-title"><span data-split>關於{p.name}</span></h1>
+    {p.quote && <p class="page-lead" data-intro>「{p.quote}」</p>}
+  </section>
+
+  <section class="about wrap">
+    <aside class="id-card glass" data-pane data-tilt>
+      {hero
+        ? <div class="id-photo"><img src={hero} alt={`${p.name} 的照片`} loading="eager" /></div>
+        : <div class="id-emblem"><Avatar size="lg" /></div>}
+      <div class="id-body">
+        <p class="id-name">{p.name}</p>
+        {p.nameEn && <p class="id-en">{p.nameEn}</p>}
+        <p class="id-role">{p.role}</p>
+        <dl class="id-meta">
+          {p.location && <div><dt>所在地</dt><dd>{p.location}</dd></div>}
+          {p.status && <div><dt>現在</dt><dd><span class="dot"></span>{p.status}</dd></div>}
+          {p.email && <div><dt>Email</dt><dd><a href={`mailto:${p.email}`}>{p.email}</a></dd></div>}
+        </dl>
+        {(p.links.length > 0 || p.resume) && (
+          <p class="id-links">
+            {p.resume && <a class="chip chip-link" href={u(p.resume)} target="_blank" rel="noopener">履歷 PDF ↗</a>}
+            {p.links.map((l) => <a class="chip chip-link" href={u(l.url)} target="_blank" rel="noopener">{l.label} ↗</a>)}
+          </p>
+        )}
+      </div>
+    </aside>
+    <div class="about-main glass" data-reveal>
+      <div class="prose prose-lg"><Content /></div>
+      {p.highlights.length > 0 && (
+        <dl class="about-stats">
+          {p.highlights.map((h) => <div><dd>{h.value}</dd><dt>{h.label}</dt></div>)}
+        </dl>
+      )}
+    </div>
+  </section>
+
+  {more.length > 0 && (
+    <section class="wrap photo-row" aria-label="照片">
+      {more.map((s, i) => (
+        <figure class="photo glass" data-reveal data-tilt><img src={s} alt={`${p.name} 的照片 ${i + 2}`} loading="lazy" /></figure>
+      ))}
+    </section>
+  )}
+
+  {p.skills.length > 0 && (
+    <section class="sec wrap">
+      <SectionHead eyebrow="Toolkit" title="我會用的工具" />
+      <div class="skill-grid">
+        {p.skills.map((g) => (
+          <div class="glass skill" data-reveal data-tilt>
+            <h3>{g.group}</h3>
+            <ul>{g.items.map((s) => <li>{s}</li>)}</ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {p.traits.length > 0 && (
+    <section class="sec wrap">
+      <SectionHead eyebrow="Principles" title="我做事的方式" />
+      <div class="traits">
+        {p.traits.map((t, i) => (
+          <article class:list={['glass trait', `t-${['pink', 'blue', 'lime', 'orange'][i % 4]}`]} data-reveal data-tilt>
+            <span class="trait-no">{String(i + 1).padStart(2, '0')}</span>
+            <h3>{t.title}</h3>
+            <p>{t.text}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {p.interests.length > 0 && (
+    <section class="sec wrap">
+      <SectionHead eyebrow="Off screen" title="工作之外" />
+      <ul class="interests">
+        {p.interests.map((s) => {
+          const [k, ...v] = s.split(/[：:]/);
+          return <li class="glass" data-reveal><strong>{k}</strong>{v.length > 0 && <span>{v.join('：')}</span>}</li>;
+        })}
+      </ul>
+    </section>
+  )}
+</Layout>

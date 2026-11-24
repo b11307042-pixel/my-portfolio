@@ -1,0 +1,24 @@
+---
+// 像素山丘：一條橫向重複的背景（整數倍放大，邊緣銳利）
+interface Props { class?: string }
+const { class: cls } = Astro.props;
+let seed = 7;
+const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+const W = 160, H = 32;
+const layer = (base: number, amp: number, step: number, fill: string) => {
+  let d = `M0 ${H}`;
+  let y = base;
+  for (let x = 0; x < W; x += step) {
+    const t = Math.sin((x / W) * Math.PI * 2) * amp + (rnd() - 0.5) * 6;
+    y = Math.round(base - t);
+    d += `L${x} ${y}L${x + step} ${y}`;
+  }
+  // 頭尾接得起來
+  d += `L${W} ${H}Z`;
+  return `<path d='${d}' fill='${fill}'/>`;
+};
+const stars = Array.from({ length: 4 }, () => `<rect x='${Math.floor(rnd() * W)}' y='${Math.floor(rnd() * 8)}' width='1' height='1' fill='%23ffd166'/>`).join('');
+const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${W} ${H}' width='${W}' height='${H}' shape-rendering='crispEdges'>${stars}${layer(14, 7, 8, '%23232650')}${layer(23, 4, 4, '%231c1e40')}<rect y='29' width='${W}' height='3' fill='%230b0c1a'/></svg>`;
+const bg = `url("data:image/svg+xml,${svg.replace(/</g, '%3C').replace(/>/g, '%3E').replace(/"/g, "'").replace(/#/g, '%23')}")`;
+---
+<div class:list={['ground', cls]} style={`background-image:${bg}`} aria-hidden="true"></div>

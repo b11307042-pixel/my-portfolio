@@ -1,0 +1,37 @@
+---
+// 桌面圖示：每一頁一個（真的 <a>），履歷、外部連結做成「替身」（斜體名稱）。
+// 有滑鼠的裝置：點一下選取、再點一下或按兩下打開；鍵盤 Enter 直接打開。
+import { getProfile, navItems, u } from '../../../lib/site';
+import Icon from './Icon.astro';
+import { pageIcon } from '../lib';
+const p = (await getProfile()).data;
+const items = await navItems();
+const here = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? here === u('/') : here.startsWith(u(href)));
+---
+<nav class="icons" aria-label="桌面圖示">
+  <ul class="icons-pages">
+    {items.map((i) => {
+      const ic = pageIcon[i.href] || { kind: 'doc', file: i.en };
+      return (
+        <li>
+          <a class="dicon" href={u(i.href)} data-icon={i.href} aria-current={isActive(i.href) ? 'page' : undefined}>
+            <Icon kind={i.href === '/' ? 'disk' : ic.kind} size={48} />
+            <span class="dicon-l">{i.href === '/' ? p.name : i.label}<small>{i.href === '/' ? 'HD' : ic.file}</small></span>
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+  {(p.resume || p.links.length > 0) && (
+    <ul class="icons-alias" aria-label="其他連結">
+      {p.resume && (
+        <li><a class="dicon alias" href={u(p.resume)} target="_blank" rel="noopener"><Icon kind="cv" size={48} /><span class="dicon-l">履歷<small>Resume.pdf</small></span></a></li>
+      )}
+      {p.links.slice(0, 5).map((l) => (
+        <li><a class="dicon alias" href={u(l.url)} target="_blank" rel="noopener"><Icon kind="link" size={48} /><span class="dicon-l">{l.label}<small>alias</small></span></a></li>
+      ))}
+    </ul>
+  )}
+  <p class="icons-hint" aria-hidden="true">按兩下打開</p>
+</nav>

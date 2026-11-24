@@ -1,0 +1,34 @@
+---
+// <head> 共用的部分：標題、描述、社群分享、字型、主色。風格的 Layout 在 <head> 裡放 <Seo />。
+import { config, theme, getProfile, u } from '../lib/site';
+interface Props { title?: string; description?: string; image?: string }
+const { title, description, image } = Astro.props;
+const p = (await getProfile()).data;
+const pageTitle = title ? `${title}｜${p.name}` : `${p.name}｜${p.role}`;
+const desc = description || p.intro;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const og = image || p.avatar;
+const ogUrl = og && Astro.site ? new URL(u(og), Astro.site).href : og ? u(og) : undefined;
+const accent = config.accent ? `:root{--accent:${config.accent}}` : '';
+// 分頁小圖示：名字第一個字＋風格的顏色（theme.mjs 的 favicon: { bg, fg, radius, font }）
+const fav = { bg: config.accent || theme.themeColor || '#111', fg: '#fff', radius: 14, font: "'Noto Sans TC','PingFang TC',sans-serif", ...(theme.favicon || {}) };
+const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const favSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="${fav.radius}" fill="${fav.bg}"/><text x="32" y="44" text-anchor="middle" font-family="${fav.font}" font-weight="900" font-size="36" fill="${fav.fg}">${esc([...p.name][0] || '?')}</text></svg>`;
+const favHref = `data:image/svg+xml,${encodeURIComponent(favSvg)}`;
+---
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>{pageTitle}</title>
+<meta name="description" content={desc} />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={desc} />
+<meta property="og:type" content="website" />
+{ogUrl && <meta property="og:image" content={ogUrl} />}
+<meta name="twitter:card" content="summary_large_image" />
+{canonical && <link rel="canonical" href={canonical} />}
+<meta name="theme-color" content={theme.themeColor} />
+<link rel="icon" href={favHref} type="image/svg+xml" />
+{theme.fonts && <link rel="preconnect" href="https://fonts.googleapis.com" />}
+{theme.fonts && <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />}
+{theme.fonts && <link rel="stylesheet" href={theme.fonts} />}
+{accent && <style set:html={accent} />}

@@ -1,0 +1,32 @@
+---
+import Layout from '../Layout.astro';
+import Arrow from '../components/Arrow.astro';
+import Phrase from '../components/Phrase.astro';
+import { u, img, fmtDate, readMinutes } from '../../../lib/site';
+import { render } from 'astro:content';
+const { entry, prev, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="post">
+  <article class="post">
+    <header class="post-head pad">
+      <div class="hero-meta mono" data-up>
+        <a class="ul" href={u('/blog/')}>← Journal</a>
+        <span>{fmtDate(d.date)}</span>
+        <span>{readMinutes(entry.body)} min read</span>
+      </div>
+      <h1 class="post-t" data-split><Phrase text={d.title} /></h1>
+      <p class="post-s" data-up>{d.summary}</p>
+      {d.tags.length > 0 && <ul class="pills" data-up>{d.tags.map((t) => <li>{t}</li>)}</ul>}
+    </header>
+    {d.cover && <div class="cs-cover"><figure class="media" data-media style="aspect-ratio:16 / 8"><img class="par" src={img(d.cover)} alt="" /></figure></div>}
+    <div class="post-body pad"><div class="prose" data-up><Content /></div></div>
+    {(prev || next) && (
+      <nav class="pn pad" aria-label="其他文章">
+        {prev ? <a class="pn-a" href={u(`/blog/${prev.id}/`)}><span class="mono">← Newer</span><span class="pn-t"><Phrase text={prev.data.title} /></span></a> : <span></span>}
+        {next ? <a class="pn-a pn-r" href={u(`/blog/${next.id}/`)}><span class="mono">Older →</span><span class="pn-t"><Phrase text={next.data.title} /></span></a> : <span></span>}
+      </nav>
+    )}
+  </article>
+</Layout>

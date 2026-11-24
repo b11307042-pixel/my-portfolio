@@ -1,0 +1,17 @@
+---
+import Layout from '../Layout.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { navItems, u } from '../../../lib/site';
+const nav = await navItems();
+---
+<Layout title="找不到這一頁" page="404">
+  <header class="ph">
+    <Crumbs items={[{ label: '404' }]} />
+    <p class="nf-code mono" data-in>404 · Not found</p>
+    <h1 class="ph-t" data-in>這一頁不存在</h1>
+    <p class="ph-s" data-in>網址可能打錯，或頁面已經搬走。用下面的捷徑回去，或按 <kbd class="kbd">⌘</kbd><kbd class="kbd">K</kbd> 搜尋。</p>
+  </header>
+  <ol class="nf-list">
+    {nav.map((n, i) => <li data-in><a href={u(n.href)}><span>{n.label}<em class="mono">{n.href}</em></span><kbd class="kbd">{i + 1}</kbd></a></li>)}
+  </ol>
+</Layout>

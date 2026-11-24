@@ -1,0 +1,43 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import Buddy from '../components/Buddy.astro';
+import { getExperience, getProfile, u } from '../../../lib/site';
+
+const exp = await getExperience();
+const p = (await getProfile()).data;
+const tones = ['lav', 'peach', 'mint', 'butter', 'sky'];
+const types = [...new Set(exp.map((e) => e.data.type || '經歷'))];
+const toneOf = (t?: string) => tones[types.indexOf(t || '經歷') % tones.length];
+---
+<Layout title="經歷" page="experience">
+  <PageHead kicker="Experience" title="一路走來" lead="實習、打工、社團和比賽，每一段都寫下我實際做了什麼。" count={exp.length} countLabel="段經歷" tone="mint" />
+  {exp.length > 0 ? (
+    <section class="wrap-mid">
+      {types.length > 1 && (
+        <ul class="legend">{types.map((t) => <li class={`t-${toneOf(t)}`}><span class="dot"></span>{t}</li>)}</ul>
+      )}
+      <ol class="xp">
+        {exp.map((e) => (
+          <li class="xp-item" data-rise>
+            <span class={`xp-ico t-${toneOf(e.data.type)}`} aria-hidden="true">{(e.data.type || '經')[0]}</span>
+            <article class="xp-card clay" data-tilt>
+              <div class="xp-top">
+                <span class={`tag-pill t-${toneOf(e.data.type)}`}>{e.data.type || '經歷'}</span>
+                <span class="xp-when">{e.data.period}</span>
+              </div>
+              <h2>{e.data.title}</h2>
+              <p class="xp-org">{e.data.org}</p>
+              <p class="xp-sum">{e.data.summary}</p>
+              {e.data.points.length > 0 && <ul class="xp-pts">{e.data.points.map((x) => <li>{x}</li>)}</ul>}
+            </article>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ) : (
+    <section class="wrap-mid">
+      <div class="empty clay"><Buddy class="empty-buddy" /><strong>第一段經歷正在發生</strong><p>{p.status || '歡迎聯絡我，聊聊可以一起做的事。'}</p><a class="btn btn-main" href={u('/contact/')} data-squish>聯絡我</a></div>
+    </section>
+  )}
+</Layout>

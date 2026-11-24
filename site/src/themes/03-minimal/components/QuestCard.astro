@@ -1,0 +1,39 @@
+---
+// 任務卡：像素視窗裡放作品截圖（截圖保持平滑），沒有截圖就放一個寶物；下面是任務名稱、說明、獎勵
+import Px from './Px.astro';
+import { u, img } from '../../../lib/site';
+import { loot, } from './sprites';
+import { pad, tones } from './game';
+interface Props { entry: any; index: number; total?: number; wide?: boolean; rewards?: number }
+const { entry, index, wide = false, rewards = 2 } = Astro.props;
+const d = entry.data;
+const cover = img(d.cover);
+const tone = tones[index % tones.length];
+const stars = Math.min(3, Math.max(1, d.results.length));
+---
+<article class:list={['qc', { wide }]} data-rise>
+  <a class={`qc-a box t-${tone}`} href={u(`/projects/${entry.id}/`)}>
+    <div class="box-bar"><span class="box-t">QUEST {pad(index + 1)}</span><span class="box-m qc-stars" aria-label={`難度 ${stars} 星`}>{Array.from({ length: 3 }, (_, i) => <span class:list={['qs', { on: i < stars }]}>★</span>)}</span></div>
+    <div class:list={['qc-shot', { empty: !cover }]}>
+      {cover ? (
+        <img src={cover} alt={`${d.title} 截圖`} loading="lazy" />
+      ) : (
+        <span class="qc-loot"><Px name={loot[index % loot.length]} scale={8} class="bob" /><span class="qc-loot-t">{d.tags[0] || 'TREASURE'}</span></span>
+      )}
+    </div>
+    <div class="qc-body">
+      {d.period && <p class="qc-period">{d.period}</p>}
+      <h3 class="qc-t">{d.title}</h3>
+      <p class="qc-sum">{d.summary}</p>
+      {d.results.length > 0 && rewards > 0 && (
+        <ul class="qc-rw" aria-label="成果">
+          {d.results.slice(0, rewards).map((r: string) => <li><Px name="coin" scale={2} />{r}</li>)}
+        </ul>
+      )}
+      <p class="qc-foot">
+        <span class="qc-tags">{d.tags.slice(0, 3).map((t: string) => <span>{t}</span>)}</span>
+        <span class="qc-go">開始任務<Px name="cursor" scale={2} /></span>
+      </p>
+    </div>
+  </a>
+</article>

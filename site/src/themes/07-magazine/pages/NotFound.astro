@@ -1,0 +1,23 @@
+---
+import Layout from '../Layout.astro';
+import { u } from '../../../lib/site';
+import { contents } from '../components/issue';
+const items = await contents();
+---
+<Layout title="找不到頁面" page="404">
+  <section class="nf">
+    <div class="op-top" data-fade-hero><span>缺頁</span><span></span><span class="it">p.404</span></div>
+    <div class="nf-main">
+      <div class="nf-text">
+        <p class="nf-en it" data-mast>Missing page</p>
+        <p class="nf-lead" data-ink-hero>這一頁可能被撕掉了，或是網址打錯了。翻回目錄，找找你要的那一篇。</p>
+        <ol class="toc toc-inline">
+          {items.map((it) => (
+            <li><a href={u(it.href)}><span class="toc-l">{it.label}</span><span class="toc-en it">{it.en}</span><span class="toc-dots" aria-hidden="true"></span><span class="toc-p">{it.page}</span></a></li>
+          ))}
+        </ol>
+      </div>
+      <h1 class="nf-v" data-vert>本頁從缺</h1>
+    </div>
+  </section>
+</Layout>

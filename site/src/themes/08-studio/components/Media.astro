@@ -1,0 +1,32 @@
+---
+// 作品圖框：有圖＝遮罩展開＋視差；沒圖＝排版過的「作品規格卡」，不是色塊
+import { img } from '../../../lib/site';
+interface Props { project: any; index?: number; ratio?: string; eager?: boolean; spec?: boolean }
+const { project, index = 0, ratio = '16 / 10', eager = false } = Astro.props;
+const d = project.data;
+const src = img(d.cover);
+const nn = String(index + 1).padStart(2, '0');
+const year = (d.period?.match(/\d{4}/) || [''])[0];
+---
+{src ? (
+  <figure class="media" data-media style={`aspect-ratio:${ratio}`}>
+    <img class="par" src={src} alt={`${d.title} 畫面`} loading={eager ? undefined : 'lazy'} fetchpriority={eager ? 'high' : undefined} decoding="async" />
+  </figure>
+) : (
+  <div class="media spec" style={`aspect-ratio:${ratio}`} data-media>
+    <div class="spec-top mono"><span>({nn}){year && ` — ${year}`}</span><span>{d.tags.slice(0, 3).join(' / ')}</span></div>
+    <div class="spec-mid">
+      <p class="mono spec-k">{d.results.length ? 'Outcome' : 'Brief'}</p>
+      <p class="spec-big">{d.results[0] || d.summary}</p>
+    </div>
+    <div class="spec-bot mono"><span>{d.role || ''}</span>{d.results.length > 1 && <span>+{String(d.results.length - 1).padStart(2, '0')} more</span>}</div>
+    <span class="spec-grid" aria-hidden="true"></span>
+  </div>
+)}</span></div>
+    <p class="spec-sum">{d.summary}</p>
+    {d.results.length > 0 ? (
+      <ul class="spec-res">{d.results.slice(0, 2).map((r: string) => <li><span class="spec-dot" aria-hidden="true"></span>{r}</li>)}</ul>
+    ) : d.role && <p class="spec-role mono">{d.role}</p>}
+    <span class="spec-grid" aria-hidden="true"></span>
+  </div>
+)}

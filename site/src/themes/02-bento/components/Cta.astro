@@ -1,0 +1,18 @@
+---
+import { getProfile, u } from '../../../lib/site';
+import Icon from './Icon.astro';
+import Phrases from './Phrases.astro';
+interface Props { title?: string; text?: string }
+const p = (await getProfile()).data;
+const { title = '一起把想法，做成好用的東西。', text = p.status || '有專案、實習或想聊聊，都歡迎來信。' } = Astro.props;
+---
+<section class="cta">
+  <div class="wrap cta-in" data-rise>
+    <h2 class="cta-title"><Phrases text={title} /></h2>
+    <p class="cta-text">{text}</p>
+    <div class="btns center">
+      <a class="pill" href={u('/contact/')}>聯絡我</a>
+      {p.email && <a class="tlink" href={`mailto:${p.email}`}>{p.email} <Icon name="chev" /></a>}
+    </div>
+  </div>
+</section>

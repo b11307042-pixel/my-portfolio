@@ -1,0 +1,38 @@
+---
+import Layout from '../Layout.astro';
+import Px from '../components/Px.astro';
+import { u, img, fmtDate, readMinutes } from '../../../lib/site';
+import { render } from 'astro:content';
+const { entry, prev, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="post">
+  <div class="read-bar" aria-hidden="true"><span data-progress></span></div>
+  <article class="post">
+    <header class="ph wrap post-head">
+      <p class="ph-stage" data-in>
+        <a class="back" href={u('/blog/')}><Px name="cursor" scale={2} class="flip" />冒險日誌</a>
+        <span class="ph-chip">{fmtDate(d.date)}</span>
+        <span class="ph-en">{readMinutes(entry.body)} MIN READ</span>
+      </p>
+      <h1 class="ph-t post-t" data-in>{d.title}</h1>
+      <p class="ph-lead" data-in>{d.summary}</p>
+      {d.tags.length > 0 && <p class="post-tags" data-in>{d.tags.map((t: string) => <span class="chip">{t}</span>)}</p>}
+    </header>
+    {d.cover && <figure class="wrap post-cover"><div class="box t-line"><img src={img(d.cover)} alt="" /></div></figure>}
+    <div class="wrap">
+      <div class="post-page box t-line">
+        <div class="box-bar"><span class="box-t">JOURNAL</span><span class="box-m">{fmtDate(d.date)}</span><span class="box-x" aria-hidden="true"><i></i><i></i></span></div>
+        <div class="prose post-body"><Content /></div>
+        <p class="post-end" aria-hidden="true"><Px name="star" scale={3} />THE END<Px name="star" scale={3} /></p>
+      </div>
+    </div>
+    {(prev || next) && (
+      <nav class="pager wrap" aria-label="其他文章">
+        {next ? <a class="pager-a box t-line" href={u(`/blog/${next.id}/`)}><span class="pager-k"><Px name="cursor" scale={2} class="flip" />較早的日誌</span><span class="pager-t">{next.data.title}</span></a> : <span></span>}
+        {prev ? <a class="pager-a box t-line nx" href={u(`/blog/${prev.id}/`)}><span class="pager-k">較新的日誌<Px name="cursor" scale={2} /></span><span class="pager-t">{prev.data.title}</span></a> : <span></span>}
+      </nav>
+    )}
+  </article>
+</Layout>

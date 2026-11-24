@@ -1,0 +1,103 @@
+---
+import Layout from '../Layout.astro';
+import CharCard from '../components/CharCard.astro';
+import Meters from '../components/Meters.astro';
+import Inventory from '../components/Inventory.astro';
+import QuestCard from '../components/QuestCard.astro';
+import Ground from '../components/Ground.astro';
+import Px from '../components/Px.astro';
+import { getProfile, getProjects, getExperience, getPosts, u, fmtDate, readMinutes } from '../../../lib/site';
+import { pad } from '../components/game';
+
+const p = (await getProfile()).data;
+const projects = await getProjects();
+const featured = (projects.filter((x) => x.data.featured).length ? projects.filter((x) => x.data.featured) : projects).slice(0, 4);
+const exp = (await getExperience()).slice(0, 3);
+const posts = (await getPosts()).slice(0, 3);
+---
+<Layout page="home">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="hero-k" data-in><span class="ph-chip">NEW GAME</span><span>{p.nameEn ? `${p.nameEn.toUpperCase()}'S PORTFOLIO` : 'PORTFOLIO'}</span></p>
+        <h1 class="hero-t" data-in><span class="sr">{p.name}：</span>{p.tagline}</h1>
+        <p class="hero-intro" data-in>{p.intro}</p>
+        <div class="hero-ctas" data-in>
+          <a class="pbtn t-gold" href={u('/projects/')}><Px name="cursor" scale={2} />開始冒險：看作品</a>
+          <a class="pbtn t-line" href={u('/about/')}>查看角色</a>
+        </div>
+        <p class="hero-hint" data-in aria-hidden="true"><span class="blink">PRESS START</span></p>
+      </div>
+      <div class="hero-card" data-in>
+        <CharCard />
+      </div>
+    </div>
+    <Ground class="hero-ground" />
+  </section>
+
+  {p.highlights.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h"><h2 class="sec-t"><span class="sec-k">STATS</span>能力值</h2></div>
+      <Meters items={p.highlights} />
+    </section>
+  )}
+
+  {featured.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h">
+        <h2 class="sec-t"><span class="sec-k">QUEST BOARD</span>精選任務</h2>
+        <a class="sec-more" href={u('/projects/')}>全部 {projects.length} 個任務<Px name="cursor" scale={2} /></a>
+      </div>
+      <div class:list={['qgrid', `n${featured.length}`]}>
+        {featured.map((x) => <QuestCard entry={x} index={projects.indexOf(x)} />)}
+      </div>
+    </section>
+  )}
+
+  {p.skills.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h"><h2 class="sec-t"><span class="sec-k">ITEMS</span>技能背包</h2></div>
+      <Inventory skills={p.skills} />
+    </section>
+  )}
+
+  {exp.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h">
+        <h2 class="sec-t"><span class="sec-k">SAVE FILES</span>冒險紀錄</h2>
+        <a class="sec-more" href={u('/experience/')}>完整紀錄<Px name="cursor" scale={2} /></a>
+      </div>
+      <ol class="saves">
+        {exp.map((e, i) => (
+          <li class:list={['save box', i === 0 ? 't-mint' : 't-line']} data-rise>
+            <span class="save-n">FILE {pad(i + 1)}</span>
+            <div class="save-main">
+              <h3>{e.data.title}</h3>
+              <p>{e.data.org}</p>
+            </div>
+            <span class="save-meta">{e.data.type && <span class="chip">{e.data.type}</span>}<span class="save-p">{e.data.period}</span></span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {posts.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h">
+        <h2 class="sec-t"><span class="sec-k">JOURNAL</span>冒險日誌</h2>
+        <a class="sec-more" href={u('/blog/')}>所有日誌<Px name="cursor" scale={2} /></a>
+      </div>
+      <div class="jgrid">
+        {posts.map((x, i) => (
+          <a class="jn box t-line" href={u(`/blog/${x.id}/`)} data-rise>
+            <span class="jn-top"><Px name="book" scale={3} /><span class="jn-d">{fmtDate(x.data.date)}</span></span>
+            <h3>{x.data.title}</h3>
+            <p>{x.data.summary}</p>
+            <span class="jn-m">{readMinutes(x.body)} MIN READ</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+</Layout>

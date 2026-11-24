@@ -1,0 +1,86 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import CharCard from '../components/CharCard.astro';
+import Inventory from '../components/Inventory.astro';
+import Dialog from '../components/Dialog.astro';
+import Px from '../components/Px.astro';
+import { render } from 'astro:content';
+import { getProfile, img } from '../../../lib/site';
+import { pad, tones } from '../components/game';
+
+const entry = await getProfile();
+const p = entry.data;
+const { Content } = await render(entry);
+const photos = p.photos.map((s) => img(s)).filter(Boolean).slice(0, 3) as string[];
+const perkIcons = ['star', 'key', 'potion', 'gem', 'sword', 'heart'];
+---
+<Layout title="關於" page="about">
+  <PageHead stage="STAGE 02" en="CHARACTER" title={`角色資料：${p.name}`} lead={p.role} icon="heart" />
+
+  <section class="wrap about">
+    <aside class="about-side" data-in>
+      <CharCard />
+    </aside>
+    <div class="about-main">
+      <div class="box t-line lore" data-in>
+        <div class="box-bar"><span class="box-t">BACKSTORY</span><span class="box-m">角色背景</span><span class="box-x" aria-hidden="true"><i></i><i></i></span></div>
+        <div class="prose lore-in"><Content /></div>
+      </div>
+    </div>
+  </section>
+
+  {photos.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h"><h2 class="sec-t"><span class="sec-k">MEMORIES</span>回憶相簿</h2></div>
+      <div class:list={['mem', `n${photos.length}`]}>
+        {photos.map((s, i) => (
+          <figure class={`mem-f box t-${tones[(i + 1) % 4]}`} data-rise>
+            <img src={s} alt="" loading="lazy" />
+            <figcaption>SCREENSHOT {pad(i + 1)}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {p.traits.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h"><h2 class="sec-t"><span class="sec-k">PERKS</span>特殊能力</h2></div>
+      <ul class:list={['perks', `n${Math.min(p.traits.length, 3)}`]}>
+        {p.traits.map((t, i) => (
+          <li class={`perk box t-${tones[i % 4]}`} data-rise>
+            <span class="perk-ico"><Px name={perkIcons[i % perkIcons.length]} scale={4} /></span>
+            <span class="perk-n">PERK {pad(i + 1)}</span>
+            <h3>{t.title}</h3>
+            <p>{t.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {p.skills.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h"><h2 class="sec-t"><span class="sec-k">ITEMS</span>技能背包</h2></div>
+      <Inventory skills={p.skills} />
+    </section>
+  )}
+
+  {p.interests.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-h"><h2 class="sec-t"><span class="sec-k">SIDE QUESTS</span>支線任務</h2></div>
+      <ul class="side-q">
+        {p.interests.map((t, i) => (
+          <li class="box t-line" data-rise><Px name="check" scale={3} /><span>{t}</span></li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {p.quote && (
+    <section class="sec wrap">
+      <Dialog text={p.quote} big />
+    </section>
+  )}
+</Layout>

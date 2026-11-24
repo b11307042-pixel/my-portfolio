@@ -1,0 +1,164 @@
+---
+import Layout from '../Layout.astro';
+import Avatar from '../components/Avatar.astro';
+import Device from '../components/Device.astro';
+import WorkCard from '../components/WorkCard.astro';
+import SectionHead from '../components/SectionHead.astro';
+import W from '../components/W.astro';
+import { getProfile, getProjects, getPosts, getExperience, img, u, fmtDate } from '../../../lib/site';
+
+const p = (await getProfile()).data;
+const projects = await getProjects();
+const picked = projects.filter((x) => x.data.featured);
+const featured = (picked.length ? picked : projects).slice(0, 5);
+const lead = featured[0];
+const rest = featured.slice(1);
+const posts = (await getPosts()).slice(0, 3);
+const exp = await getExperience();
+const skills = p.skills.flatMap((g) => g.items);
+const countOf = (v: string) => { const m = v.replace(/,/g, '').match(/^(\d+)(\+?)$/); return m ? { n: m[1], s: m[2] } : null; };
+const tLen = [...p.tagline].length;
+const tones = ['pink', 'blue', 'lime', 'orange'];
+---
+<Layout page="home">
+  <section class="hero wrap">
+    <div class="hero-pane glass glass-xl" data-pane data-tilt>
+      <a class="badge" href={u('/contact/')}>
+        <span class="dot"></span>
+        <span>{p.status || p.role}</span>
+        <span class="badge-go" aria-hidden="true">→</span>
+      </a>
+      <h1 class:list={['hero-title', tLen > 28 && 'long', tLen > 44 && 'xlong']}><span data-split><W text={p.tagline} /></span></h1>
+      <p class="hero-intro" data-intro>{p.intro}</p>
+      <div class="hero-actions" data-intro>
+        <a class="btn btn-ink magnet" href={u('/projects/')}>看作品<span class="arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn-glass" href={u('/about/')}>認識我</a>
+      </div>
+    </div>
+
+    <aside class="hero-card glass" data-pane data-tilt>
+      <Avatar size="lg" photo />
+      <p class="hero-name">{p.name}</p>
+      {p.nameEn && <p class="hero-en">{p.nameEn}</p>}
+      <p class="hero-role">{p.role}</p>
+      {p.location && <p class="hero-loc">{p.location}</p>}
+    </aside>
+
+    {p.highlights.length > 0 && (
+      <div class="hero-drops" aria-hidden="true">
+        {p.highlights.slice(0, 2).map((h, i) => (
+          <span class:list={['drop glass', `drop-${i + 1}`]} data-pane><strong>{h.value}</strong><span>{h.label}</span></span>
+        ))}
+      </div>
+    )}
+  </section>
+
+  {lead && (
+    <section class="stage wrap" aria-label="代表作品">
+      <a class="stage-link" href={u(`/projects/${lead.id}/`)} aria-label={`${lead.data.title}：看完整案例`}>
+        <Device src={img(lead.data.cover)} alt={`${lead.data.title} 畫面`} label={lead.data.title} project={lead.data} index={0} eager />
+      </a>
+      <div class="stage-cap glass" data-reveal data-tilt>
+        <p class="eyebrow">Featured · 01</p>
+        <h2 class="stage-title"><W text={lead.data.title} /></h2>
+        <p class="stage-sum">{lead.data.summary}</p>
+        <a class="link-arrow" href={u(`/projects/${lead.id}/`)}>看完整案例<span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  )}
+
+  {p.highlights.length > 0 && (
+    <section class="stats wrap" aria-label="重點數字">
+      <dl class="stats-grid" style={`--n:${Math.min(p.highlights.length, 4)}`}>
+        {p.highlights.map((h, i) => {
+          const c = countOf(h.value);
+          return (
+            <div class:list={['stat glass', `t-${tones[i % 4]}`]} data-reveal data-tilt>
+              <dd class="stat-v" data-count={c?.n} data-suffix={c?.s}>{h.value}</dd>
+              <dt>{h.label}</dt>
+            </div>
+          );
+        })}
+      </dl>
+    </section>
+  )}
+
+  {rest.length > 0 && (
+    <section class="sec wrap">
+      <SectionHead eyebrow="Selected work" title="精選作品" href="/projects/" linkLabel={`全部 ${projects.length} 個作品`} />
+      <div class="work-grid">
+        {rest.map((e, i) => <WorkCard entry={e} index={i + 1} wide={rest.length === 1 || (rest.length % 2 === 1 && i === 0)} />)}
+      </div>
+    </section>
+  )}
+
+  {p.traits.length > 0 && (
+    <section class="sec wrap">
+      <SectionHead eyebrow="How I work" title="我做事的方式" href="/about/" linkLabel="更多關於我" />
+      <div class="traits">
+        {p.traits.map((t, i) => (
+          <article class:list={['glass trait', `t-${tones[i % 4]}`]} data-reveal data-tilt>
+            <span class="trait-no">{String(i + 1).padStart(2, '0')}</span>
+            <h3>{t.title}</h3>
+            <p>{t.text}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {skills.length > 0 && (
+    <section class="marquee wrap" aria-label="技能">
+      <div class="marquee-in glass" data-marquee>
+        <div class="marquee-track">
+          {[0, 1].map((k) => (
+            <ul aria-hidden={k === 1 ? 'true' : undefined}>
+              {skills.map((s) => <li>{s}</li>)}
+            </ul>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {(exp.length > 0 || posts.length > 0) && (
+    <section class:list={['sec wrap split-sec', (exp.length === 0 || posts.length === 0) && 'one']}>
+      {exp.length > 0 && (
+        <div class="glass list-pane" data-reveal>
+          <div class="list-head">
+            <div><p class="eyebrow">Experience</p><h2 class="sec-title">最近在做</h2></div>
+            <a class="link-arrow" href={u('/experience/')}>完整經歷<span aria-hidden="true">→</span></a>
+          </div>
+          <ol class="mini-list">
+            {exp.slice(0, 3).map((x) => (
+              <li>
+                <a href={u('/experience/')}>
+                  <span class="mini-date">{x.data.period}</span>
+                  <span class="mini-main"><strong>{x.data.title}</strong><span>{x.data.org}</span></span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {posts.length > 0 && (
+        <div class="glass list-pane" data-reveal>
+          <div class="list-head">
+            <div><p class="eyebrow">Writing</p><h2 class="sec-title">最近寫的</h2></div>
+            <a class="link-arrow" href={u('/blog/')}>所有文章<span aria-hidden="true">→</span></a>
+          </div>
+          <ol class="mini-list">
+            {posts.map((x) => (
+              <li>
+                <a href={u(`/blog/${x.id}/`)}>
+                  <span class="mini-date">{fmtDate(x.data.date)}</span>
+                  <span class="mini-main"><strong>{x.data.title}</strong><span>{x.data.summary}</span></span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </section>
+  )}
+</Layout>

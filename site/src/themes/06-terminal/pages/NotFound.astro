@@ -1,0 +1,22 @@
+---
+import Layout from '../Layout.astro';
+import Win from '../components/Win.astro';
+import Icon from '../components/Icon.astro';
+import { navItems, u } from '../../../lib/site';
+const items = await navItems();
+---
+<Layout title="找不到頁面" stage="page nf">
+  <Win id="w-main" title="系統錯誤" icon="bomb" class="w-alert" main plain label="找不到頁面">
+    <div class="alert-in">
+      <Icon kind="bomb" size={48} />
+      <div>
+        <h1 class="alert-t">抱歉，找不到這個檔案。</h1>
+        <p>網址可能打錯了，或這一頁已經搬家。錯誤代碼 <b>404</b>。</p>
+        <ul class="nf-links">{items.map((i) => <li><a href={u(i.href)}>{i.label}</a></li>)}</ul>
+      </div>
+    </div>
+    <div slot="foot" class="btns btns-end">
+      <a class="btn btn-default" href={u('/')}>重新開機（回首頁）</a>
+    </div>
+  </Win>
+</Layout>

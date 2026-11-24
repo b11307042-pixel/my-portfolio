@@ -1,0 +1,48 @@
+---
+// 裝置外框：筆電（橫的截圖）或手機（直的截圖）。沒有截圖時，螢幕裡放一個用文字排出來的作品摘要畫面。
+import { img } from '../../../lib/site';
+import { isTall } from './imgsize';
+interface Fallback { title: string; summary?: string; tags?: string[]; results?: string[]; n?: number }
+interface Props { src?: string; alt?: string; kind?: 'mac' | 'phone' | 'auto'; eager?: boolean; fb?: Fallback; class?: string }
+const { src, alt = '', kind = 'auto', eager = false, fb, class: cls } = Astro.props;
+const type = kind === 'auto' ? (isTall(src) ? 'phone' : 'mac') : kind;
+const s = img(src);
+const check = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+---
+{type === 'phone' ? (
+  <figure class:list={['device phone', cls]}>
+    <div class="phone-body">
+      <div class="phone-screen">{s ? <img src={s} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" /> : null}</div>
+      <span class="phone-island" aria-hidden="true"></span>
+    </div>
+  </figure>
+) : (
+  <figure class:list={['device mac', cls]}>
+    <div class="mac-lid">
+      <span class="mac-cam" aria-hidden="true"></span>
+      <div class="mac-screen">
+        {s ? (
+          <img src={s} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+        ) : fb ? (
+          <div class="fb" role="img" aria-label={fb.title}>
+            <div class="fb-bar"><i></i><i></i><i></i><span>{fb.title}</span></div>
+            <div class="fb-body">
+              <div class="fb-main">
+                <p class="fb-k">Project {String(fb.n ?? 1).padStart(2, '0')}</p>
+                <p class="fb-title">{fb.title}</p>
+                {fb.summary && <p class="fb-sum">{fb.summary}</p>}
+                {fb.tags && fb.tags.length > 0 && <p class="fb-tags">{fb.tags.slice(0, 4).map((t) => <span>{t}</span>)}</p>}
+              </div>
+              {fb.results && fb.results.length > 0 && (
+                <ul class="fb-list">
+                  {fb.results.slice(0, 3).map((r) => <li><Fragment set:html={check} /><span>{r}</span></li>)}
+                </ul>
+              )}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+    <div class="mac-base" aria-hidden="true"></div>
+  </figure>
+)}

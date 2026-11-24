@@ -1,0 +1,58 @@
+---
+// 頁尾：存檔點。對話框邀請聯絡＋選單＋外部連結，最下面一條像素山丘
+import Dialog from './Dialog.astro';
+import Ground from './Ground.astro';
+import Px from './Px.astro';
+import { getProfile, navItems, u } from '../../../lib/site';
+interface Props { cta?: boolean }
+const { cta = true } = Astro.props;
+const p = (await getProfile()).data;
+const items = await navItems();
+const year = new Date().getFullYear();
+const line = p.status ? `${p.status}。要一起組隊的話，選一個方式找我吧。` : '要一起組隊的話，選一個方式找我吧。';
+---
+<footer class="ft">
+  {cta && (
+    <section class="ft-cta wrap" aria-label="聯絡">
+      <p class="sec-k"><Px name="heart" scale={3} />SAVE POINT</p>
+      <Dialog text={line}>
+        <div class="choices">
+          <a class="choice" href={u('/contact/')}><Px name="cursor" scale={2} class="choice-cur" />聯絡我</a>
+          {p.email && <a class="choice" href={`mailto:${p.email}`}><Px name="cursor" scale={2} class="choice-cur" />直接寄信</a>}
+          <a class="choice" href={u('/projects/')}><Px name="cursor" scale={2} class="choice-cur" />先看作品</a>
+        </div>
+      </Dialog>
+    </section>
+  )}
+  <div class="ft-grid wrap">
+    <div class="ft-id">
+      <p class="ft-name">{p.name}{p.nameEn && <span>{p.nameEn}</span>}</p>
+      <p class="ft-role">{p.role}</p>
+    </div>
+    <div class="ft-col">
+      <p class="ft-k">MAP</p>
+      <ul>{items.map((it) => <li><a href={u(it.href)}>{it.label}</a></li>)}</ul>
+    </div>
+    {p.links.length > 0 && (
+      <div class="ft-col">
+        <p class="ft-k">PORTALS</p>
+        <ul>{p.links.map((l) => <li><a href={u(l.url)} target="_blank" rel="noopener">{l.label}</a></li>)}</ul>
+      </div>
+    )}
+    <div class="ft-col">
+      <p class="ft-k">CONTACT</p>
+      <ul>
+        {p.email && <li><a href={`mailto:${p.email}`} class="ft-mail">{p.email}</a></li>}
+        {p.location && <li class="ft-mute">{p.location}</li>}
+        {p.resume && <li><a href={u(p.resume)} target="_blank" rel="noopener">履歷 PDF</a></li>}
+      </ul>
+    </div>
+  </div>
+  <Ground class="ft-ground" />
+  <div class="ft-base">
+    <div class="wrap ft-base-in">
+      <span>© {year} {p.nameEn || p.name}</span>
+      <a href="#main" class="ft-top">PRESS START<span aria-hidden="true"> ▲</span><span class="sr"> 回到頂端</span></a>
+    </div>
+  </div>
+</footer>

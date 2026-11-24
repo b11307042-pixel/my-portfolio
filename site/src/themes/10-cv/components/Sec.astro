@@ -1,0 +1,12 @@
+---
+// 區塊：小字大寫標籤＋（可選）右邊的「全部」連結
+interface Props { label: string; id?: string; more?: string; moreLabel?: string; class?: string }
+const { label, id, more, moreLabel = '全部', class: cls } = Astro.props;
+---
+<section class:list={['sec', cls]} id={id} aria-labelledby={id ? `${id}-h` : undefined}>
+  <header class="sec-h" data-in>
+    <h2 id={id ? `${id}-h` : undefined}>{label}</h2>
+    {more && <a class="sec-more" href={more}>{moreLabel}<span aria-hidden="true">→</span></a>}
+  </header>
+  <slot />
+</section>

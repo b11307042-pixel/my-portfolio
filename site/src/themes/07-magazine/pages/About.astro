@@ -1,0 +1,114 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import Opener from '../components/Opener.astro';
+import Plate from '../components/Plate.astro';
+import Rail from '../components/Rail.astro';
+import Seal from '../components/Seal.astro';
+import { getProfile, u } from '../../../lib/site';
+import { folio, n2 } from '../components/issue';
+import { render } from 'astro:content';
+
+const entry = await getProfile();
+const p = entry.data;
+const { Content } = await render(entry);
+const page = await folio('/about/');
+const roman = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+const interests = p.interests.map((s) => { const [a, ...b] = s.split(/[：:]/); return { k: a, v: b.join('：') }; });
+const sealText = [...p.name].length > 2 ? [...p.name].slice(-2).join('') : p.name;
+let k = 0; const nx = () => n2(++k);
+let fig = p.avatar ? 1 : 0;
+---
+<Layout title="關於" page="about">
+  <Opener kicker="人物專訪" en="Profile" title={`關於${p.name}`} lead={p.tagline} folio={page} />
+
+  <section class:list={['ab-open', { 'no-photo': !p.avatar }]}>
+    {p.avatar && <Plate class="ab-portrait" src={p.avatar} alt={p.name} ratio="4 / 5" num={1} caption={`${p.name}${p.location ? '，' + p.location : ''}`} />}
+    <div class="ab-right">
+    <p class="ab-intro" data-ink>{p.intro}</p>
+    <aside class="factfile" data-rise>
+      <p class="factfile-k">小檔案 <span class="it">Fact file</span></p>
+      <dl>
+        <div><dt>姓名</dt><dd>{p.name}{p.nameEn && <span class="it"> {p.nameEn}</span>}</dd></div>
+        <div><dt>身分</dt><dd>{p.role}</dd></div>
+        {p.location && <div><dt>所在</dt><dd>{p.location}</dd></div>}
+        {p.status && <div><dt>近況</dt><dd class="acc">{p.status}</dd></div>}
+        {p.email && <div><dt>來信</dt><dd><a class="ln-a" href={`mailto:${p.email}`}>{p.email}</a></dd></div>}
+        {(p.links.length > 0 || p.resume) && <div><dt>其他</dt><dd class="ff-links">{p.links.map((l) => <a class="ln-a" href={u(l.url)} target="_blank" rel="noopener">{l.label}</a>)}{p.resume && <a class="ln-a" href={u(p.resume)} target="_blank" rel="noopener">履歷 PDF</a>}</dd></div>}
+      </dl>
+      <Seal text={sealText} size="52px" class="factfile-seal" />
+    </aside>
+    </div>
+  </section>
+
+  <section class="sx">
+    <Rail num={nx()} zh="自述" en="In my own words" />
+    <div class="sx-body ab-words">
+      <div class="prose dropcap-first" data-rise><Content /></div>
+      {p.highlights.length > 0 && (
+        <aside class="numbers" aria-label="重點數字">
+          <p class="numbers-k">數字裡的我 <span class="it">By the numbers</span></p>
+          <dl>{p.highlights.map((h) => <div data-rise><dt>{h.label}</dt><dd class="it">{h.value}</dd></div>)}</dl>
+        </aside>
+      )}
+    </div>
+  </section>
+
+  {p.traits.length > 0 && (
+    <section class="sx">
+      <Rail num={nx()} zh="做事的方法" en="Working notes" />
+      <div class="sx-body">
+        <ol class="notes">
+          {p.traits.map((t, i) => (
+            <li data-rise>
+              <span class="notes-n it">{roman[i] || i + 1}.</span>
+              <h3 class={kp(t.title)}>{t.title}</h3>
+              <p>{t.text}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )}
+
+  {p.quote && (
+    <section class="vq" aria-label="引言">
+      <span class="vq-mark it" aria-hidden="true">“</span>
+      <blockquote class="vq-text" data-vert-scroll>{p.quote}</blockquote>
+      <p class="vq-by">— {p.name}<span class="it">{p.nameEn}</span></p>
+    </section>
+  )}
+
+  {p.skills.length > 0 && (
+    <section class="sx">
+      <Rail num={nx()} zh="工具箱" en="The toolkit" />
+      <div class="sx-body">
+        <dl class="kit">
+          {p.skills.map((g) => (
+            <div data-rise><dt>{g.group}</dt><dd>{g.items.map((it) => <span>{it}</span>)}</dd></div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )}
+
+  {p.photos.length > 0 && (
+    <section class="sx">
+      <Rail num={nx()} zh="生活剪影" en="Off duty" />
+      <div class="sx-body ab-photos">
+        {p.photos.map((ph) => <Plate src={ph} num={++fig} caption={p.name} />)}
+      </div>
+    </section>
+  )}
+
+  {interests.length > 0 && (
+    <section class="sx">
+      <Rail num={nx()} zh="閒暇" en="Pastimes" />
+      <div class="sx-body">
+        <ul class="pastimes">
+          {interests.map((it) => <li data-rise><span class="pt-k">{it.k}</span>{it.v && <span class="pt-v">{it.v}</span>}</li>)}
+        </ul>
+      </div>
+    </section>
+  )}
+</Layout>

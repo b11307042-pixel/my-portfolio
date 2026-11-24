@@ -1,0 +1,41 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import { pageNum, n2 } from '../components/num';
+import { getPosts, u, fmtDate, readMinutes } from '../../../lib/site';
+
+const posts = await getPosts();
+const num = await pageNum('/blog/');
+const [first, ...rest] = posts;
+---
+<Layout title="文章" page="blog">
+  <PageHead num={num} en="Writing" title="文章" lead={`${posts.length} 篇筆記：做作品時學到的事、踩過的坑。`} note="Notes & essays" />
+
+  {first && (
+    <a class="bl-first" href={u(`/blog/${first.id}/`)} data-up>
+      <span class="rule"></span>
+      <span class="bl-meta mono"><span>Latest</span><span>{fmtDate(first.data.date)}</span><span>{readMinutes(first.body)} min read</span></span>
+      <span class:list={['bl-t', kp(first.data.title)]}>{first.data.title}</span>
+      <span class="bl-s">{first.data.summary}</span>
+      <span class="bl-tags mono">{first.data.tags.join(' · ')}</span>
+      <span class="bl-go" aria-hidden="true">→</span>
+    </a>
+  )}
+  {rest.length > 0 && (
+    <section class="sec bl-rest">
+      <ol class="prow-list">
+        {rest.map((x, i) => (
+          <li data-up>
+            <a class="prow" href={u(`/blog/${x.id}/`)}>
+              <span class="mono">{n2(i + 2)} — {fmtDate(x.data.date)}</span>
+              <span class:list={['prow-t', kp(x.data.title)]}>{x.data.title}</span>
+              <span class="prow-s">{x.data.summary}</span>
+              <span class="prow-a" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+</Layout>

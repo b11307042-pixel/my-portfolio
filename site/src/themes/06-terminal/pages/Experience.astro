@@ -1,0 +1,60 @@
+---
+import Layout from '../Layout.astro';
+import Win from '../components/Win.astro';
+import Icon from '../components/Icon.astro';
+import { getExperience, u } from '../../../lib/site';
+const exp = await getExperience();
+const types = [...new Set(exp.map((e) => e.data.type).filter(Boolean))] as string[];
+const count = types.map((t) => ({ t, n: exp.filter((e) => e.data.type === t).length }));
+const max = Math.max(1, ...count.map((c) => c.n));
+---
+<Layout title="經歷" stage="page">
+  <Win id="w-main" title="Experience.log" icon="log" class="w-main" main label="經歷紀錄" info={`${exp.length} 筆紀錄`} infoR="新的在上面">
+    <header class="doc-head">
+      <p class="kicker">Experience</p>
+      <h1 class="doc-title">經歷</h1>
+      <p class="doc-lead">實習、工作、社團和比賽。每一段都寫下做了什麼、留下什麼。</p>
+    </header>
+    {exp.length > 0 ? (
+      <ol class="xp">
+        {exp.map((x) => (
+          <li class="xp-i">
+            <div class="xp-when">
+              <span class="xp-d">{x.data.period}</span>
+              {x.data.type && <span class="tag">{x.data.type}</span>}
+            </div>
+            <div class="xp-what">
+              <h2 class="xp-t">{x.data.title}</h2>
+              <p class="xp-o">{x.data.org}</p>
+              <p class="xp-s">{x.data.summary}</p>
+              {x.data.points.length > 0 && <ul class="xp-pts">{x.data.points.map((pt) => <li>{pt}</li>)}</ul>}
+            </div>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <div class="empty"><Icon kind="log" size={48} /><p>還沒有紀錄。課堂專題、社團、打工都算經歷。<a href={u('/projects/')}>先看作品</a></p></div>
+    )}
+  </Win>
+  {count.length > 0 && (
+    <div class="side">
+      <Win id="w-sum" title="統計" icon="app" class="w-sum" plain label="經歷統計" info={`共 ${exp.length} 段`}>
+        <ul class="hl hl-sm">
+          {count.map((c) => (
+            <li>
+              <span class="hl-v">{c.n}</span>
+              <span class="hl-l">{c.t}</span>
+              <span class="prog" aria-hidden="true"><i data-prog style={`width:${Math.round((c.n / max) * 100)}%`}></i></span>
+            </li>
+          ))}
+        </ul>
+      </Win>
+      {exp[0] && (
+        <aside class="sticky" aria-label="現在">
+          <p class="sticky-k">現在</p>
+          <p>{exp[0].data.title}<br />{exp[0].data.org}</p>
+        </aside>
+      )}
+    </div>
+  )}
+</Layout>

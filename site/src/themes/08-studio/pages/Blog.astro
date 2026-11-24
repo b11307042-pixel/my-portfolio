@@ -1,0 +1,29 @@
+---
+import Layout from '../Layout.astro';
+import Head from '../components/Head.astro';
+import Arrow from '../components/Arrow.astro';
+import Phrase from '../components/Phrase.astro';
+import { getPosts, u, fmtDate, readMinutes } from '../../../lib/site';
+const posts = await getPosts();
+---
+<Layout title="文章" page="blog">
+  <Head en="Journal" zh="文章" count={posts.length} lead="做作品時的筆記、心得，和中間犯過的錯。" />
+  <section class="sec-s pad">
+    {posts.length === 0 && <p class="empty">還沒有文章。</p>}
+    <ul class="bl">
+      {posts.map((x, i) => (
+        <li>
+          <a class="bl-a" href={u(`/blog/${x.id}/`)}>
+            <span class="mono bl-d">{fmtDate(x.data.date)}</span>
+            <span class="bl-m">
+              <span class="bl-t"><Phrase text={x.data.title} /></span>
+              <span class="bl-s">{x.data.summary}</span>
+            </span>
+            <span class="mono bl-k">{readMinutes(x.body)} min{x.data.tags.length ? ` / ${x.data.tags.join(' / ')}` : ''}</span>
+            <span class="bl-go"><Arrow dir="ne" /></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Layout>

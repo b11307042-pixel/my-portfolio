@@ -1,0 +1,14 @@
+{
+  "name": "contact-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute contact-db --remote --file=schema.sql",
+    "db:list": "wrangler d1 execute contact-db --remote --command \"SELECT id, created_at, name, email, substr(message,1,60) AS message FROM messages ORDER BY id DESC LIMIT 20\""
+  },
+  "devDependencies": {
+    "wrangler": "4.157.0"
+  }
+}

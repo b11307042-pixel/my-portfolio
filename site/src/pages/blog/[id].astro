@@ -1,0 +1,9 @@
+---
+import Page from '@theme/pages/Post.astro';
+import { getPosts } from '../../lib/site';
+export async function getStaticPaths() {
+  const all = await getPosts();
+  return all.map((entry, i) => ({ params: { id: entry.id }, props: { entry, prev: all[i - 1], next: all[i + 1] } }));
+}
+---
+<Page {...Astro.props} />

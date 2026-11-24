@@ -1,0 +1,84 @@
+---
+import Layout from '../Layout.astro';
+import Marquee from '../components/Marquee.astro';
+import Phrase from '../components/Phrase.astro';
+import { getProfile, u, img } from '../../../lib/site';
+import { render } from 'astro:content';
+const profile = await getProfile();
+const p = profile.data;
+const { Content } = await render(profile);
+const photos = p.photos.filter((x) => x && x !== p.avatar).slice(0, 3);
+const split = (s: string) => { const m = s.split(/[：:]/); return m.length > 1 ? [m[0], m.slice(1).join('：')] : [s, '']; };
+---
+<Layout title="關於" page="about">
+  <header class="ph pad">
+    <div class="ph-meta mono" data-up><span>(關於)</span>{p.location && <span>{p.location}</span>}</div>
+    <h1 class="ph-title"><span class="ph-en" data-fit data-fit-max="0.2" data-split>About</span></h1>
+  </header>
+
+  <section class="ab pad">
+    <div class:list={['ab-grid', { 'no-photo': !p.avatar }]}>
+      {p.avatar ? (
+        <figure class="ab-pic"><div class="media" data-media style="aspect-ratio:4 / 5"><img class="par" src={img(p.avatar)} alt={p.name} fetchpriority="high" /></div></figure>
+      ) : (
+        <div class="ab-id" data-up>
+          <p class="ab-id-n">{p.name}</p>
+          {p.nameEn && <p class="mono">{p.nameEn}</p>}
+          <p class="ab-id-r">{p.role}</p>
+        </div>
+      )}
+      <div class="ab-main">
+        <p class="ab-lead" data-split><Phrase text={p.tagline} /></p>
+        <div class="prose" data-up><Content /></div>
+        <dl class="ab-facts mono" data-up>
+          <div><dt>Name</dt><dd>{p.name}{p.nameEn ? ` / ${p.nameEn}` : ''}</dd></div>
+          <div><dt>Role</dt><dd>{p.role}</dd></div>
+          {p.status && <div><dt>Now</dt><dd>{p.status}</dd></div>}
+          {p.email && <div><dt>Email</dt><dd><a class="ul" href={`mailto:${p.email}`}>{p.email}</a></dd></div>}
+          {p.resume && <div><dt>Resume</dt><dd><a class="ul" href={u(p.resume)} target="_blank" rel="noopener">下載履歷 ↗</a></dd></div>}
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  {p.quote && (
+    <section class="quote pad"><p class="mono k">(Belief)</p><blockquote data-split><Phrase text={p.quote} /></blockquote></section>
+  )}
+
+  {p.traits.length > 0 && (
+    <section class="sec pad">
+      <header class="sh"><h2 class="sh-t"><span data-split>Approach</span></h2><p class="sh-r mono">做事的方式</p></header>
+      <ol class="traits" data-stagger>
+        {p.traits.map((t, i) => <li><span class="mono trait-n">{String(i + 1).padStart(2, '0')}</span><h3>{t.title}</h3><p>{t.text}</p></li>)}
+      </ol>
+    </section>
+  )}
+
+  {p.skills.length > 0 && (
+    <section class="sec pad">
+      <header class="sh"><h2 class="sh-t"><span data-split>Toolkit</span></h2><p class="sh-r mono">技能與工具</p></header>
+      <div class="skills">
+        {p.skills.map((s) => (
+          <div class="skill"><p class="skill-g">{s.group}</p><ul class="pills pills-l">{s.items.map((it) => <li>{it}</li>)}</ul></div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {photos.length > 0 && (
+    <section class="sec pad">
+      <div class:list={['ab-photos', `n-${photos.length}`]}>
+        {photos.map((ph) => <figure class="media" data-media><img class="par" src={img(ph)} alt="" loading="lazy" decoding="async" /></figure>)}
+      </div>
+    </section>
+  )}
+
+  {p.interests.length > 0 && (
+    <section class="sec pad">
+      <header class="sh"><h2 class="sh-t"><span data-split>Off-hours</span></h2><p class="sh-r mono">工作以外</p></header>
+      <ul class="ints" data-stagger>
+        {p.interests.map((s, i) => { const [a, b] = split(s); return <li><span class="mono">{String(i + 1).padStart(2, '0')}</span><span class="ints-a">{a}</span>{b && <span class="ints-b">{b}</span>}</li>; })}
+      </ul>
+    </section>
+  )}
+</Layout>

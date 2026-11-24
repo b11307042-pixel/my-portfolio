@@ -1,0 +1,35 @@
+---
+// 角色卡：頭像（像素相框）、名字、職業、等級、狀態、所在地
+import Px from './Px.astro';
+import { getProfile, img } from '../../../lib/site';
+import { level, yearProgress } from './game';
+interface Props { class?: string }
+const { class: cls } = Astro.props;
+const p = (await getProfile()).data;
+const avatar = img(p.avatar);
+const lv = await level();
+const xp = yearProgress();
+const [cls1, ...rest] = p.role.split(/[｜|]/);
+---
+<div class:list={['cc box t-gold', cls]}>
+  <div class="box-bar"><span class="box-t">PLAYER 1</span><span class="box-m">STATUS</span><span class="box-x" aria-hidden="true"><i></i><i></i></span></div>
+  <div class="cc-in">
+    <div class:list={['cc-pic', { sprite: !avatar }]}>
+      {avatar ? <img src={avatar} alt={`${p.name} 的大頭照`} loading="eager" /> : <Px name="hero" scale={8} class="bob" />}
+      <span class="cc-lv">LV<b>{lv}</b></span>
+    </div>
+    <div class="cc-tx">
+      <p class="cc-name">{p.name}</p>
+      {p.nameEn && <p class="cc-en">{p.nameEn}</p>}
+      <dl class="cc-dl">
+        <div><dt>CLASS</dt><dd>{cls1.trim()}{rest.length > 0 && <span class="cc-sub">{rest.join('｜').trim()}</span>}</dd></div>
+        {p.location && <div><dt>MAP</dt><dd>{p.location}</dd></div>}
+      </dl>
+    </div>
+  </div>
+  <div class="cc-bars">
+    <div class="bar-row"><span class="bar-k">HP</span><span class="bar seg t-coral"><span class="bar-f" style="width:100%"></span></span><span class="bar-v">MAX</span></div>
+    <div class="bar-row"><span class="bar-k">EXP</span><span class="bar seg t-mint"><span class="bar-f" style={`width:${xp}%`}></span></span><span class="bar-v">{xp}%</span></div>
+  </div>
+  {p.status && <p class="cc-status"><i class="blip" aria-hidden="true"></i><span>{p.status}</span></p>}
+</div>

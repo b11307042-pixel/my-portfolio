@@ -1,0 +1,48 @@
+# 推上 main 就自動部署到 GitHub Pages。
+# 第一次要先開 Pages（只做一次）：gh api -X POST "repos/{owner}/{repo}/pages" -f build_type=workflow
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: |
+          OWNER="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          REPO="${{ github.event.repository.name }}"
+          # 倉庫叫 <帳號>.github.io 就放在根目錄，其他倉庫放在 /倉庫名/
+          if [ "$(echo "$REPO" | tr '[:upper:]' '[:lower:]')" = "$OWNER.github.io" ]; then BASE="/"; else BASE="/$REPO/"; fi
+          SITE_URL="https://$OWNER.github.io" BASE_PATH="$BASE" npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

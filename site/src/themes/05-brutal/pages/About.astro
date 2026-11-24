@@ -1,0 +1,116 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import Marquee from '../components/Marquee.astro';
+import { render } from 'astro:content';
+import { getProfile, img, u } from '../../../lib/site';
+
+const entry = await getProfile();
+const p = entry.data;
+const { Content } = await render(entry);
+const photos = [p.avatar, ...p.photos].filter(Boolean).slice(0, 3).map((s) => img(s)!);
+const colors = ['y', 'p', 'b', 'm'];
+const tilts = [-4, 3, -2];
+---
+<Layout title="關於" page="about">
+  <PageHead en="ABOUT" title={`嗨，我是${p.name}`} lead={p.role} color="p" />
+
+  <section class="wrap about-top">
+    <div class="about-media">
+      {photos.length > 0 ? (
+        <div class:list={['collage', `collage-${photos.length}`]}>
+          {photos.map((src, i) => (
+            <figure class={`polar c-${colors[i % 4]}`} style={`--r:${tilts[i]}deg`} data-drag>
+              <span class="tape" aria-hidden="true"></span>
+              <img src={src} alt={i === 0 ? `${p.name} 的照片` : ''} loading={i === 0 ? 'eager' : 'lazy'} />
+            </figure>
+          ))}
+        </div>
+      ) : (
+        <div class="idcard" data-tilt>
+          <div class="id-head"><span>STUDENT ID</span><span>{new Date().getFullYear()}</span></div>
+          <div class="id-body">
+            <div class="id-mono" aria-hidden="true">
+              <svg viewBox="0 0 100 100"><circle cx="50" cy="38" r="18" /><path d="M16 96c4-22 18-32 34-32s30 10 34 32" /></svg>
+            </div>
+            <dl class="id-facts">
+              <div><dt>NAME</dt><dd>{p.name}</dd></div>
+              {p.nameEn && <div><dt>EN</dt><dd>{p.nameEn}</dd></div>}
+              {p.location && <div><dt>BASED IN</dt><dd>{p.location}</dd></div>}
+            </dl>
+          </div>
+          <div class="id-code" aria-hidden="true">{Array.from({ length: 38 }).map((_, i) => <i style={`width:${[2, 4, 2, 6, 3][i % 5]}px`}></i>)}</div>
+          {p.status && <span class="id-stamp">OPEN<br />TO WORK</span>}
+        </div>
+      )}
+    </div>
+    <div class="about-body">
+      <div class="prose prose-card" data-rise><Content /></div>
+      <div class="about-meta" data-rise>
+        {p.location && <span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-7.5 7-13a7 7 0 1 0-14 0c0 5.5 7 13 7 13z" /></svg>{p.location}</span>}
+        {p.status && <span class="chip chip-m"><span class="pulse" aria-hidden="true"></span>{p.status}</span>}
+        {p.resume && <a class="btn btn-y btn-sm" href={img(p.resume)} target="_blank" rel="noopener">下載履歷</a>}
+      </div>
+    </div>
+  </section>
+
+  {p.quote && (
+    <section class="quote-band" data-rise>
+      <div class="wrap">
+        <svg class="qb-mark" viewBox="0 0 80 60" aria-hidden="true"><path d="M0 60V34C0 14 10 3 30 0v12c-9 3-13 9-13 18h13v30zm46 0V34C46 14 56 3 76 0v12c-9 3-13 9-13 18h13v30z" /></svg>
+        <blockquote>{p.quote}</blockquote>
+        <p class="qb-by">— {p.name}</p>
+      </div>
+    </section>
+  )}
+
+  {p.traits.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-head"><h2 class="sec-title"><span class="sec-en">HOW I WORK</span>我怎麼做事</h2></div>
+      <ol class="traits">
+        {p.traits.map((t, i) => (
+          <li class={`trait c-${colors[(i + 1) % 4]}`} data-rise data-tilt>
+            <span class="trait-n">{String(i + 1).padStart(2, '0')}</span>
+            <h3>{t.title}</h3>
+            <p>{t.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {p.skills.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-head"><h2 class="sec-title"><span class="sec-en">TOOLKIT</span>技能與工具</h2></div>
+      <div class="skills">
+        {p.skills.map((s, i) => (
+          <div class="skill" data-rise>
+            <h3 class={`skill-h c-${colors[i % 4]}`}>{s.group}<span>{s.items.length}</span></h3>
+            <ul>{s.items.map((it) => <li>{it}</li>)}</ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {p.interests.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-head"><h2 class="sec-title"><span class="sec-en">OFF SCREEN</span>工作以外</h2></div>
+      <ul class="interests">
+        {p.interests.map((it, i) => {
+          const [h, ...rest] = it.split('：');
+          return (
+            <li class={`int c-${colors[(i + 2) % 4]}`} style={`--r:${[-3, 2, -1.5, 3, -2][i % 5]}deg`} data-rise>
+              <strong>{h}</strong>{rest.length > 0 && <span>{rest.join('：')}</span>}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+
+  <section class="sec wrap next-band" data-rise>
+    <p>看完我是誰，接著看我做過什麼。</p>
+    <a class="btn btn-y btn-lg" href={u('/projects/')}>看作品<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" /></svg></a>
+  </section>
+</Layout>

@@ -1,0 +1,21 @@
+---
+import Layout from '../Layout.astro';
+import Px from '../components/Px.astro';
+import { u } from '../../../lib/site';
+---
+<Layout title="找不到這一頁" page="404" cta={false}>
+  <section class="go wrap">
+    <p class="go-code" data-in>ERROR 404</p>
+    <h1 class="go-t" data-in><span>GAME</span> <span>OVER</span></h1>
+    <div class="go-hero" data-in><Px name="fallen" scale={8} /></div>
+    <p class="go-lead" data-in>這一頁不存在：網址可能打錯，或關卡已經搬走了。</p>
+    <div class="go-box box t-line" data-in>
+      <p class="go-q">CONTINUE?<b data-countdown>9</b></p>
+      <div class="choices col">
+        <a class="choice" href={u('/')}><Px name="cursor" scale={2} class="choice-cur" />是，回到首頁</a>
+        <a class="choice" href={u('/projects/')}><Px name="cursor" scale={2} class="choice-cur" />去任務看板</a>
+        <a class="choice" href={u('/contact/')}><Px name="cursor" scale={2} class="choice-cur" />回報問題</a>
+      </div>
+    </div>
+  </section>
+</Layout>

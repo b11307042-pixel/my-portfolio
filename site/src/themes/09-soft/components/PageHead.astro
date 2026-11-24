@@ -1,0 +1,19 @@
+---
+// 內頁標題：置中、旁邊飄著黏土小零件
+interface Props { kicker: string; title: string; lead?: string; count?: number; countLabel?: string; tone?: string }
+const { kicker, title, lead, count, countLabel, tone = 'lav' } = Astro.props;
+---
+<header class={`ph t-${tone}`}>
+  <span class="ph-deco d1" aria-hidden="true" data-float></span>
+  <span class="ph-deco d2" aria-hidden="true" data-float></span>
+  <span class="ph-deco d3" aria-hidden="true" data-float></span>
+  <div class="wrap ph-in">
+    <p class="kicker" data-in><span class="kicker-dot"></span>{kicker}</p>
+    <h1 class="ph-title" data-in>{title}</h1>
+    {lead && <p class="ph-lead" data-in>{lead}</p>}
+    {count !== undefined && (
+      <p class="ph-count" data-in><strong data-count>{count}</strong><span>{countLabel}</span></p>
+    )}
+    <slot />
+  </div>
+</header>

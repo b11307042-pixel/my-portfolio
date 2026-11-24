@@ -1,0 +1,92 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import Plate from '../components/Plate.astro';
+import TypePlate from '../components/TypePlate.astro';
+import Seal from '../components/Seal.astro';
+import { getProfile, u, img } from '../../../lib/site';
+import { ratio } from '../components/dims';
+import { n2, zh } from '../components/issue';
+import { render } from 'astro:content';
+
+const { entry, index = 0, total = 1, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const p = (await getProfile()).data;
+const gal = d.gallery.map((g) => ({ ...g, r: ratio(g.src, 4 / 3) }));
+const startFig = d.cover ? 2 : 1;
+const pull = d.results[0];
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="project">
+  <article class="art">
+    <header class="art-head">
+      <div class="op-top" data-fade-hero>
+        <a class="ln-a" href={u('/projects/')}>← 作品特輯</a>
+        <span><span class="it">Feature</span> No.{n2(index + 1)} / {n2(total)}</span>
+        <span class="it">{d.period}</span>
+      </div>
+      <div class="art-open">
+        <h1 class="art-v" data-vert>{d.title}</h1>
+        <div class="art-cover">
+          {d.cover ? <Plate src={d.cover} alt={d.title} ratio="16 / 10" pos="top" hero parallax={false} num={1} caption={d.title} />
+            : <TypePlate title={d.title} index={index} tags={d.tags} period={d.period} ratio="16 / 10" />}
+        </div>
+      </div>
+      <p class:list={['art-stand', kp(d.summary)]} data-ink-hero>{d.summary}</p>
+      <p class="art-byline" data-fade-hero>
+        <span>文・圖／{p.name}</span>
+        {d.role && <span>{d.role}</span>}
+        {d.tags.length > 0 && <span>{d.tags.join('・')}</span>}
+      </p>
+    </header>
+
+    <div class="art-body">
+      <div class="art-main">
+        {pull && (
+          <blockquote class="pull" data-rise>
+            <p class={kp(pull)}>{pull}</p>
+          </blockquote>
+        )}
+        <div class="prose dropcap-first"><Content /></div>
+        <p class="endmark" aria-hidden="true"><Seal text={[...p.name].slice(-1).join('')} size="22px" /></p>
+      </div>
+      <aside class="art-side">
+        <div class="sidebox" data-rise>
+          <p class="sidebox-k">這篇的數字 <span class="it">In numbers</span></p>
+          {d.results.length > 0 ? (
+            <ol>{d.results.map((r, i) => <li><span class="it">{i + 1}</span>{r}</li>)}</ol>
+          ) : <p class="sidebox-empty">成果整理中。</p>}
+        </div>
+        <dl class="sidebox sidebox-meta" data-rise>
+          {d.role && <div><dt>負責</dt><dd>{d.role}</dd></div>}
+          {d.period && <div><dt>期間</dt><dd class="it">{d.period}</dd></div>}
+          {d.tags.length > 0 && <div><dt>工具</dt><dd>{d.tags.join('・')}</dd></div>}
+          {d.links.length > 0 && <div><dt>延伸</dt><dd class="ff-links">{d.links.map((l) => <a class="ln-a" href={u(l.url)} target="_blank" rel="noopener">{l.label}</a>)}</dd></div>}
+        </dl>
+      </aside>
+    </div>
+
+    {gal.length > 0 && (
+      <section class="art-gal" aria-label="作品圖版">
+        <p class="gal-k"><span class="it">Plates</span>　圖版</p>
+        <div class="gal-row">
+          {gal.map((g, i) => (
+            <figure class="gal-i" style={`--r:${g.r.toFixed(3)}`} data-rise>
+              <div class="plate-frame" style={`aspect-ratio:${g.r.toFixed(3)}`}><img src={img(g.src)} alt={g.caption || ''} loading="lazy" decoding="async" /></div>
+              <figcaption class="cap"><span class="cap-n">圖{zh(startFig + i)}</span><span>{g.caption}</span></figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {next && next.id !== entry.id && (
+      <a class="nextart" href={u(`/projects/${next.id}/`)} data-cursor="翻頁">
+        <span class="rule"></span>
+        <span class="nextart-k">下一篇 <span class="it">Next feature</span></span>
+        <span class:list={['nextart-t', kp(next.data.title)]}>{next.data.title}</span>
+        <span class="nextart-s">{next.data.summary}</span>
+      </a>
+    )}
+  </article>
+</Layout>

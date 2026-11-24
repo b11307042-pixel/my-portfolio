@@ -1,0 +1,147 @@
+---
+import Layout from '../Layout.astro';
+import Buddy from '../components/Buddy.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getProfile, getProjects, getExperience, getPosts, u, img, fmtDate } from '../../../lib/site';
+
+const p = (await getProfile()).data;
+const projects = await getProjects();
+const featured = (projects.filter((x) => x.data.featured).length ? projects.filter((x) => x.data.featured) : projects).slice(0, 3);
+const exp = (await getExperience()).slice(0, 3);
+const posts = (await getPosts()).slice(0, 2);
+const avatar = img(p.avatar);
+const tones = ['lav', 'peach', 'mint', 'butter', 'sky'];
+const hl = p.highlights[0];
+const skills = p.skills.flatMap((s) => s.items).slice(0, 5);
+---
+<Layout page="home">
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <p class="hello" data-hero><span class="hello-av" aria-hidden="true">{avatar ? <img src={avatar} alt="" /> : <span></span>}</span>嗨，我是{p.name}{p.nameEn && <span class="hello-en">{p.nameEn}</span>}</p>
+      <h1 class="hero-title" data-hero>{p.tagline}</h1>
+      <p class="hero-intro" data-hero>{p.intro}</p>
+      <div class="hero-ctas" data-hero>
+        <a class="btn btn-main btn-lg" href={u('/projects/')} data-squish>看看作品<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg></a>
+        <a class="btn btn-soft btn-lg" href={u('/about/')} data-squish>認識我</a>
+      </div>
+      <ul class="hero-facts" data-hero>
+        <li><b>身份</b>{p.role}</li>
+        {p.location && <li><b>所在</b>{p.location}</li>}
+      </ul>
+    </div>
+    <div class="hero-art" data-parallax>
+      <div class="halo" aria-hidden="true"></div>
+      {avatar ? (
+        <figure class="portrait" data-depth="0.4">
+          <img src={avatar} alt={`${p.name} 的照片`} loading="eager" />
+        </figure>
+      ) : (
+        <div class="portrait portrait-buddy" data-depth="0.4"><Buddy label={`${p.name} 的小夥伴`} /></div>
+      )}
+      {p.status && (
+        <span class="float-chip fc-status" data-depth="1.1" data-float><span class="live" aria-hidden="true"></span>{p.status}</span>
+      )}
+      {hl && (
+        <span class="float-chip fc-num" data-depth="0.8" data-float><b data-count>{hl.value}</b><small>{hl.label}</small></span>
+      )}
+      {skills.length > 0 && (
+        <span class="float-chip fc-skills" data-depth="1.4" data-float>
+          {skills.slice(0, 3).map((s, i) => <span class={`mini t-${tones[i]}`}>{s}</span>)}
+        </span>
+      )}
+      <span class="orb o1" aria-hidden="true" data-depth="1.8" data-float></span>
+      <span class="orb o2" aria-hidden="true" data-depth="0.6" data-float></span>
+    </div>
+  </section>
+
+  {p.highlights.length > 0 && (
+    <section class="wrap bubbles-sec">
+      <ul class="bubbles">
+        {p.highlights.map((h, i) => (
+          <li class={`bubble t-${tones[i % tones.length]}`} data-pop>
+            <strong data-count>{h.value}</strong>
+            <span>{h.label}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {featured.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kicker"><span class="kicker-dot"></span>Selected work</p>
+          <h2 class="sec-title">最近做的作品</h2>
+        </div>
+        <a class="btn btn-soft btn-sm" href={u('/projects/')} data-squish>全部 {projects.length} 件</a>
+      </div>
+      <div class:list={['pc-feature', `n-${featured.length}`]}>
+        {featured.map((x, i) => <div class="pc-cell" data-rise><ProjectCard entry={x} index={i} big={i === 0} /></div>)}
+      </div>
+    </section>
+  )}
+
+  <section class="sec wrap">
+    <div class="about-split">
+      <div class="ab-bubble clay" data-rise>
+        <p class="kicker"><span class="kicker-dot"></span>About me</p>
+        {p.quote ? <p class="ab-quote">「{p.quote}」</p> : <p class="ab-quote">{p.tagline}</p>}
+        <a class="btn btn-main" href={u('/about/')} data-squish>多認識我一點<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg></a>
+      </div>
+      {p.traits.length > 0 && (
+        <ol class="ab-traits">
+          {p.traits.map((t, i) => (
+            <li class="clay" data-rise>
+              <span class={`num t-${tones[(i + 1) % tones.length]}`}>{i + 1}</span>
+              <div><h3>{t.title}</h3><p>{t.text}</p></div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  </section>
+
+  {exp.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kicker"><span class="kicker-dot"></span>Experience</p>
+          <h2 class="sec-title">最近在忙的事</h2>
+        </div>
+        <a class="btn btn-soft btn-sm" href={u('/experience/')} data-squish>完整經歷</a>
+      </div>
+      <ol class="xp-mini">
+        {exp.map((e, i) => (
+          <li class="clay" data-rise>
+            <span class={`xp-ico t-${tones[(i + 2) % tones.length]}`} aria-hidden="true">{(e.data.type || '經')[0]}</span>
+            <div class="xp-mini-main"><h3>{e.data.title}</h3><p>{e.data.org}</p></div>
+            <span class="xp-mini-when">{e.data.period}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {posts.length > 0 && (
+    <section class="sec wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kicker"><span class="kicker-dot"></span>Writing</p>
+          <h2 class="sec-title">寫下來的筆記</h2>
+        </div>
+        <a class="btn btn-soft btn-sm" href={u('/blog/')} data-squish>所有文章</a>
+      </div>
+      <div class="post-cards">
+        {posts.map((x, i) => (
+          <a class={`post-card clay t-${tones[(i + 1) % tones.length]}`} href={u(`/blog/${x.id}/`)} data-rise data-tilt>
+            <span class="date-pill">{fmtDate(x.data.date)}</span>
+            <h3>{x.data.title}</h3>
+            <p>{x.data.summary}</p>
+            <span class="read-more">閱讀<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg></span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+</Layout>

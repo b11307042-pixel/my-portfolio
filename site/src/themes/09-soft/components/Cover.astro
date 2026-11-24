@@ -1,0 +1,27 @@
+---
+// 作品封面：粉嫩底色上浮著截圖。沒有截圖時，用黏土小零件拼出一張「App 卡片」場景
+import { img } from '../../../lib/site';
+interface Props { src?: string; alt?: string; index?: number; title?: string; tag?: string; note?: string; eager?: boolean; size?: 'md' | 'lg'; class?: string }
+const { src, alt = '', index = 0, title = '', tag, note, eager = false, size = 'md', class: cls = '' } = Astro.props;
+const tones = ['lav', 'peach', 'mint', 'sky'];
+const tone = tones[index % tones.length];
+const url = img(src);
+---
+<div class:list={['cv', `t-${tone}`, `cv-${size}`, { 'cv-scene': !url }, `lay-${index % 3}`, cls]}>
+  {url ? (
+    <img class="cv-img" src={url} alt={alt} loading={eager ? 'eager' : 'lazy'} />
+  ) : (
+    <div class="sc" aria-hidden="true">
+      <span class="sc-ball"></span>
+      <span class="sc-ring"></span>
+      <span class="sc-pill"></span>
+      <div class="sc-card">
+        <div class="sc-top"><span class="sc-av"></span><span class="sc-lines"><i></i><i></i></span></div>
+        <strong class="sc-title">{title}</strong>
+        {note && <span class="sc-note">{note}</span>}
+        <span class="sc-btn">{tag || '查看'}</span>
+      </div>
+      <span class="sc-star"><svg viewBox="0 0 24 24"><path d="M12 2c.8 5.2 4.8 9.2 10 10-5.2.8-9.2 4.8-10 10-.8-5.2-4.8-9.2-10-10 5.2-.8 9.2-4.8 10-10z" /></svg></span>
+    </div>
+  )}
+</div>

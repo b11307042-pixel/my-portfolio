@@ -1,0 +1,27 @@
+---
+// 沒有截圖時的「字體玻璃卡」：大大的漸層篇名、一句話、成果數字。不是一塊色塊加大字。
+interface Props { title: string; summary: string; results: string[]; tags: string[]; period?: string; index?: number; compact?: boolean }
+const { title, summary, results, tags, period, index = 0, compact = false } = Astro.props;
+const top = results.slice(0, compact ? 1 : 3);
+const num = (s: string) => { const all = s.match(/\d[\d,.]*(?:\s*[–~-]\s*\d[\d,.]*)?\s*(?:%|倍|位|人|筆|本|小時|分鐘|秒|步|場|名|次|個|間|張)?/g); const pick = all ? (/降到|減到|提高到|降至|升到|變成/.test(s) ? all[all.length - 1] : all[0]) : undefined; return pick && pick.replace(/\s+/g, '').length > 0 ? pick.trim() : undefined; };
+const tone = ['t-pink', 't-blue', 't-lime', 't-orange'][index % 4];
+---
+<div class:list={['spec', tone, compact && 'spec-compact']}>
+  <span class="spec-orb" aria-hidden="true"></span>
+  <span class="spec-orb spec-orb-2" aria-hidden="true"></span>
+  <div class="spec-head">
+    <span class="spec-no">{String(index + 1).padStart(2, '0')}</span>
+    {period && <span class="spec-period">{period}</span>}
+  </div>
+  <p class="spec-title">{title}</p>
+  {!compact && <p class="spec-sum">{summary}</p>}
+  {top.length > 0 && (
+    <ul class="spec-results">
+      {top.map((r) => {
+        const n = num(r);
+        return <li>{n && <strong>{n}</strong>}<span>{r}</span></li>;
+      })}
+    </ul>
+  )}
+  {!compact && tags.length > 0 && <p class="spec-tags">{tags.map((t) => <span>{t}</span>)}</p>}
+</div>

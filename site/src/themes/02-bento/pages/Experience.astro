@@ -1,0 +1,46 @@
+---
+import Layout from '../Layout.astro';
+import Icon from '../components/Icon.astro';
+import Cta from '../components/Cta.astro';
+import Phrases from '../components/Phrases.astro';
+import { getExperience } from '../../../lib/site';
+const list = await getExperience();
+const types = [...new Set(list.map((e) => e.data.type).filter(Boolean))];
+---
+<Layout title="經歷" page="experience">
+  <header class="phead wrap">
+    <p class="kicker">經歷</p>
+    <h1 class="h1" data-intro><Phrases text="做過的事，都留下了一點什麼。" /></h1>
+    <p class="lede" data-intro>{list.length ? `${list.length} 段經歷${types.length ? `，包含${types.join('、')}` : ''}。` : '經歷正在累積中。'}</p>
+  </header>
+  {list.length ? (
+    <section class="wrap xp">
+      <div class="xp-line" aria-hidden="true"><div class="xp-fill"></div></div>
+      {list.map((e, i) => (
+        <article class="xp-item" data-rise>
+          <div class="xp-when">
+            <strong class:list={{ rep: i > 0 && String(list[i - 1].data.start).slice(0, 4) === String(e.data.start).slice(0, 4) }}>{String(e.data.start).slice(0, 4)}</strong>
+            <span>{e.data.period}</span>
+          </div>
+          <div class="card xp-card">
+            {e.data.type && <p class="xp-top"><span class="tag">{e.data.type}</span></p>}
+            <h2 class="xp-t">{e.data.title}</h2>
+            <p class="xp-org">{e.data.org}</p>
+            <p class="xp-s">{e.data.summary}</p>
+            {e.data.points.length > 0 && <ul class="xp-p">{e.data.points.map((pt) => <li><Icon name="check" /><span>{pt}</span></li>)}</ul>}
+          </div>
+        </article>
+      ))}
+    </section>
+  ) : (
+    <p class="xp-empty wrap">還沒有經歷，先去看看作品吧。</p>
+  )}
+  <Cta />
+</Layout>
+<script>
+  import { gsap, onReady } from '../../../lib/motion';
+  onReady(() => {
+    gsap.from('.phead .kicker, [data-intro]', { y: 30, opacity: 0, filter: 'blur(8px)', duration: 1.3, ease: 'expo.out', stagger: 0.1 });
+    gsap.from('.xp-fill', { scaleY: 0, ease: 'none', scrollTrigger: { trigger: '.xp', start: 'top 60%', end: 'bottom 60%', scrub: 0.4 } });
+  });
+</script>

@@ -1,0 +1,31 @@
+---
+import { getProfile, navItems, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const items = await navItems();
+const year = new Date().getFullYear();
+---
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-id">
+        <p class="foot-name">{p.name}{p.nameEn && <span> {p.nameEn}</span>}</p>
+        <p class="foot-role">{p.role}</p>
+      </div>
+      <nav class="foot-col" aria-label="頁尾">
+        <p>網站</p>
+        {items.map((i) => <a href={u(i.href)}>{i.label}</a>)}
+      </nav>
+      {(p.links.length > 0 || p.email) && (
+        <div class="foot-col">
+          <p>在別處找到我</p>
+          {p.email && <a href={`mailto:${p.email}`}>Email</a>}
+          {p.links.map((l) => <a href={u(l.url)} target="_blank" rel="noopener">{l.label}</a>)}
+        </div>
+      )}
+    </div>
+    <div class="foot-bottom">
+      <span>Copyright © {year} {p.nameEn || p.name}. 保留所有權利。</span>
+      {p.location && <span>{p.location}</span>}
+    </div>
+  </div>
+</footer>

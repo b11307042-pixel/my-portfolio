@@ -1,0 +1,29 @@
+---
+// 05 新粗獷：整站外框
+import Seo from '../../shared/Seo.astro';
+import Header from './components/Header.astro';
+import Footer from './components/Footer.astro';
+import { config } from '../../lib/site';
+import './styles.css';
+
+interface Props { title?: string; description?: string; image?: string; page?: string }
+const { title, description, image, page = 'page' } = Astro.props;
+---
+<!doctype html>
+<html lang={config.lang} data-page={page}>
+<head>
+  <Seo title={title} description={description} image={image} />
+</head>
+<body>
+  <a class="skip" href="#main">跳到內容</a>
+  <Header />
+  <main id="main">
+    <slot />
+  </main>
+  <Footer />
+  <script>
+    import './scripts/brutal';
+  </script>
+  <script is:inline>if (location.search.includes('shot')) document.querySelectorAll('img[loading=lazy]').forEach((i) => { i.loading = 'eager'; });</script>
+</body>
+</html>

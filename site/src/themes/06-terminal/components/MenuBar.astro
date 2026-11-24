@@ -1,0 +1,27 @@
+---
+// 上方選單列：左邊是 logo（開「尋找」）＋名字＋頁面，右邊是還原視窗、尋找、時鐘
+import { getProfile, navItems, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const items = await navItems();
+const here = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? here === u('/') : here.startsWith(u(href)));
+const first = [...p.name][0] || '?';
+---
+<header class="menubar">
+  <button class="mb-logo" type="button" data-palette-open aria-label="開啟尋找視窗">
+    <span aria-hidden="true">{first}</span>
+  </button>
+  <a class="mb-name" href={u('/')} aria-current={here === u('/') ? 'page' : undefined}>{p.name}</a>
+  <nav class="mb-nav" aria-label="主要導覽">
+    {items.filter((i) => i.href !== '/').map((i) => (
+      <a href={u(i.href)} aria-current={isActive(i.href) ? 'page' : undefined}>{i.label}</a>
+    ))}
+  </nav>
+  <div class="mb-right">
+    <button class="mb-item mb-restore" type="button" data-restore hidden>還原視窗</button>
+    <button class="mb-item mb-find" type="button" data-palette-open>
+      <span class="mb-find-l">尋找</span><kbd><span data-mod>⌘</span>K</kbd>
+    </button>
+    <span class="mb-clock" data-clock aria-hidden="true"><span data-clock-d>週一</span> <span data-clock-t>12:00</span></span>
+  </div>
+</header>

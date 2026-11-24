@@ -1,0 +1,54 @@
+---
+// 左側欄（桌機固定）；手機變成上方一條＋全螢幕選單
+import { getProfile, navItems, u, initials } from '../../../lib/site';
+const p = (await getProfile()).data;
+const items = await navItems();
+const path = Astro.url.pathname;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const active = (href: string) => (href === '/' ? path === base + '/' || path === base : path.startsWith(base + href));
+const nn = (i: number) => String(i + 1).padStart(2, '0');
+---
+<aside class="side">
+  <a class="side-brand" href={u('/')} aria-label="回首頁">
+    <span class="side-mark">{initials(p.name, p.nameEn)}</span>
+    <span class="side-id">
+      <span class="side-name">{p.name}</span>
+      <span class="side-role">{p.role}</span>
+    </span>
+  </a>
+  <nav class="side-nav" aria-label="主要導覽">
+    {items.map((it, i) => (
+      <a href={u(it.href)} class:list={['side-link', { on: active(it.href) }]} aria-current={active(it.href) ? 'page' : undefined}>
+        <span class="side-n mono">{nn(i)}</span>
+        <span class="side-t">{it.label}</span>
+        <span class="side-en mono">{it.en}</span>
+      </a>
+    ))}
+  </nav>
+  <div class="side-foot">
+    {p.status && <p class="side-status"><span class="pulse" aria-hidden="true"></span>{p.status}</p>}
+    <dl class="side-dl mono">
+      {p.location && <div><dt>Based</dt><dd>{p.location}</dd></div>}
+      <div><dt>Local</dt><dd data-clock>GMT+8</dd></div>
+    </dl>
+    {p.links.length > 0 && <ul class="side-links">{p.links.slice(0, 4).map((l) => <li><a class="ul" href={u(l.url)} target="_blank" rel="noopener">{l.label}</a></li>)}</ul>}
+  </div>
+</aside>
+
+<header class="top">
+  <a class="top-brand" href={u('/')}><span class="side-mark">{initials(p.name, p.nameEn)}</span><span>{p.name}</span></a>
+  <button class="top-btn" type="button" data-menu aria-expanded="false" aria-controls="mnav"><span class="top-btn-t">Menu</span><i aria-hidden="true"></i></button>
+</header>
+<div class="mnav" id="mnav">
+  <nav aria-label="手機選單">
+    {items.map((it, i) => (
+      <a href={u(it.href)} class:list={['mnav-link', { on: active(it.href) }]}>
+        <span class="mono">{nn(i)}</span><span class="mnav-t">{it.label}</span><span class="mono mnav-en">{it.en}</span>
+      </a>
+    ))}
+  </nav>
+  <div class="mnav-foot">
+    {p.status && <p class="side-status"><span class="pulse" aria-hidden="true"></span>{p.status}</p>}
+    {p.email && <a class="ul" href={`mailto:${p.email}`}>{p.email}</a>}
+  </div>
+</div>

@@ -1,0 +1,55 @@
+---
+import Layout from '../Layout.astro';
+import Head from '../components/Head.astro';
+import Sec from '../components/Sec.astro';
+import { getProfile, img } from '../../../lib/site';
+import { render } from 'astro:content';
+const prof = await getProfile();
+const p = prof.data;
+const { Content } = await render(prof);
+const photos = p.photos.map((s) => img(s)).filter(Boolean) as string[];
+---
+<Layout title="關於" page="about">
+  <Head compact />
+
+  <Sec label="自傳" id="bio">
+    <div class="prose" data-in><Content /></div>
+  </Sec>
+
+  {photos.length > 0 && (
+    <section class:list={['photos no-print', `n${Math.min(photos.length, 3)}`]} aria-label="照片" data-in>
+      {photos.slice(0, 3).map((s, i) => <figure><img src={s} alt="" loading={i ? 'lazy' : 'eager'} /><figcaption class="mono">{String(i + 1).padStart(2, '0')}</figcaption></figure>)}
+    </section>
+  )}
+
+  {p.traits.length > 0 && (
+    <Sec label="做事方式" id="traits">
+      <ol class="traits">
+        {p.traits.map((t, i) => (
+          <li data-in><span class="d mono">{String(i + 1).padStart(2, '0')}</span><div><h3>{t.title}</h3><p>{t.text}</p></div></li>
+        ))}
+      </ol>
+    </Sec>
+  )}
+
+  {p.skills.length > 0 && (
+    <Sec label="技能" id="skills">
+      <dl class="kv">{p.skills.map((s) => <div data-in><dt>{s.group}</dt><dd>{s.items.map((i) => <span>{i}</span>)}</dd></div>)}</dl>
+    </Sec>
+  )}
+
+  {p.interests.length > 0 && (
+    <Sec label="興趣" id="interests">
+      <dl class="kv">
+        {p.interests.map((t) => { const [a, b] = t.split(/[：:]/); return <div data-in><dt>{a}</dt><dd>{b || ''}</dd></div>; })}
+      </dl>
+    </Sec>
+  )}
+
+  {p.quote && (
+    <figure class="quote" data-in>
+      <blockquote>{p.quote}</blockquote>
+      <figcaption class="mono">— {p.nameEn || p.name}</figcaption>
+    </figure>
+  )}
+</Layout>

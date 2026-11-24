@@ -1,0 +1,35 @@
+---
+import Layout from '../Layout.astro';
+import W from '../components/W.astro';
+import { img, u, fmtDate, readMinutes } from '../../../lib/site';
+import { render } from 'astro:content';
+const { entry, prev, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const cover = img(d.cover);
+---
+<Layout title={d.title} description={d.summary} image={d.cover || undefined} page="post">
+  <div class="progress" aria-hidden="true"><span data-progress></span></div>
+  <article class="post">
+    <header class="post-hero wrap glass glass-xl" data-pane>
+      <a class="back" href={u('/blog/')} data-intro><span aria-hidden="true">←</span> 所有文章</a>
+      <p class="post-meta post-meta-hero" data-intro>
+        <time datetime={d.date.toISOString()}>{fmtDate(d.date)}</time>
+        <span>{readMinutes(entry.body)} 分鐘閱讀</span>
+        {d.tags.map((t: string) => <span>{t}</span>)}
+      </p>
+      <h1 class="post-h1"><span data-split><W text={d.title} /></span></h1>
+      <p class="page-lead" data-intro>{d.summary}</p>
+    </header>
+    {cover && <figure class="wrap post-cover glass" data-reveal><img src={cover} alt="" loading="eager" /></figure>}
+    <div class="wrap post-body">
+      <div class="prose prose-lg glass prose-pane" data-reveal><Content /></div>
+    </div>
+    {(prev || next) && (
+      <nav class="wrap pager" aria-label="其他文章">
+        {prev ? <a class="glass" href={u(`/blog/${prev.id}/`)}><span class="eyebrow">← 較新</span><span>{prev.data.title}</span></a> : <span></span>}
+        {next ? <a class="glass pager-next" href={u(`/blog/${next.id}/`)}><span class="eyebrow">較舊 →</span><span>{next.data.title}</span></a> : <span></span>}
+      </nav>
+    )}
+  </article>
+</Layout>

@@ -1,0 +1,169 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import Plate from '../components/Plate.astro';
+import TypePlate from '../components/TypePlate.astro';
+import Rail from '../components/Rail.astro';
+import Seal from '../components/Seal.astro';
+import { getProfile, getProjects, getExperience, getPosts, u, fmtDate, readMinutes } from '../../../lib/site';
+import { year, month, season, seasonEn, n2 } from '../components/issue';
+
+const prof = await getProfile();
+const p = prof.data;
+// 沒有大頭照時，封面卡片已經放了 intro，導讀改用自介內文的前兩段
+const bodyParas = (prof.body || '').split(/\n\s*\n/).map((x) => x.replace(/[#>*_`\[\]]/g, '').trim()).filter(Boolean);
+const introText = p.avatar || bodyParas.length === 0 ? p.intro : bodyParas.slice(0, 2).join('');
+const projects = await getProjects();
+const featured = projects.filter((x) => x.data.featured).length ? projects.filter((x) => x.data.featured) : projects;
+const exp = (await getExperience()).slice(0, 4);
+const posts = (await getPosts()).slice(0, 3);
+const mast = p.nameEn || 'Portfolio';
+const nameLen = [...p.name].length;
+const sealText = nameLen > 2 ? [...p.name].slice(-2).join('') : p.name;
+let k = 0; const nx = () => n2(++k);
+// 封面標語（cover lines）：精選作品 + 頁碼
+const coverLines = featured.slice(0, 3).map((x, i) => ({ id: x.id, kicker: x.data.tags[0] || '作品', title: x.data.title, page: n2(16 + i * 12) }));
+---
+<Layout page="home">
+  <section class="cover">
+    <div class="cv-strip" data-fade-hero>
+      <span><span class="it">No.</span>{month}</span>
+      <span>{year} {season}季號 ・ <span class="it">{seasonEn} {year}</span></span>
+      <span class="cv-strip-r">{p.location}</span>
+    </div>
+    <p class="cv-mast" data-mast style={`--len:${mast.length}`}>{mast}</p>
+    <div class="cv-rule"><span>{p.role}</span></div>
+
+    <div class:list={['cv-body', { 'no-photo': !p.avatar }]}>
+      <div class="cv-lines">
+        <p class="cv-k">本期特輯</p>
+        <ol>
+          {coverLines.map((c) => (
+            <li data-fade-hero>
+              <a href={u(`/projects/${c.id}/`)} data-cursor="閱讀">
+                <span class="cv-line-k">{c.kicker}</span>
+                <span class:list={['cv-line-t', kp(c.title)]}>{c.title}</span>
+                <span class="cv-line-p it">p.{c.page}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+        {p.status && <p class="cv-status" data-fade-hero><span class="cv-dot"></span>{p.status}</p>}
+      </div>
+
+      <div class="cv-center">
+        {p.avatar ? (
+          <Plate src={p.avatar} alt={p.name} ratio="4 / 5" hero caption={`封面人物：${p.name}${p.location ? '，攝於' + p.location.split(/[，,]/)[0] : ''}`} />
+        ) : (
+          <div class="letter" data-fade-hero>
+            <p class="letter-k">編者的話 <span class="it">Editor’s letter</span></p>
+            <p class="letter-body dropcap">{p.intro}</p>
+            <div class="letter-sign"><Seal text={sealText} size="46px" /><span>{p.name}<span class="it">{p.nameEn}</span></span></div>
+          </div>
+        )}
+      </div>
+
+      <div class="cv-name">
+        <h1 class="cv-v" data-vert style={`--len:${nameLen}`}>{p.name}</h1>
+        <p class="cv-v-role">{p.role.split(/[｜|]/)[0]}</p>
+      </div>
+    </div>
+
+    <p class:list={['cv-tag', kp(p.tagline)]} data-ink-hero>{p.tagline}</p>
+  </section>
+
+  <section class="sx">
+    <Rail num={nx()} zh="本期導讀" en="Introduction" />
+    <div class="sx-body intro">
+      <p class="intro-lead dropcap" data-ink>{introText}</p>
+      {p.highlights.length > 0 && (
+        <aside class="numbers" aria-label="重點數字">
+          <p class="numbers-k">數字裡的我 <span class="it">By the numbers</span></p>
+          <dl>
+            {p.highlights.map((h) => <div data-rise><dt>{h.label}</dt><dd class="it">{h.value}</dd></div>)}
+          </dl>
+        </aside>
+      )}
+    </div>
+  </section>
+
+  {featured.length > 0 && (
+    <section class="sx">
+      <Rail num={nx()} zh="作品特輯" en="Features" />
+      <div class="sx-body">
+        {featured.map((x, i) => (
+          <article class:list={['feat', { flip: i % 2 === 1 }]}>
+            <a class="feat-plate" href={u(`/projects/${x.id}/`)} data-cursor="閱讀" tabindex="-1" aria-hidden="true">
+              {x.data.cover ? <Plate src={x.data.cover} ratio="16 / 10" pos="top" parallax={false} /> : <TypePlate title={x.data.title} index={i} tags={x.data.tags} period={x.data.period} ratio="16 / 10" />}
+            </a>
+            <div class="feat-text">
+              <p class="feat-k"><span class="it">Feature</span> No.{n2(i + 1)}<span class="feat-p it">p.{n2(16 + i * 12)}</span></p>
+              <h3 class:list={['feat-t', kp(x.data.title)]}><a href={u(`/projects/${x.id}/`)} data-cursor="閱讀">{x.data.title}</a></h3>
+              <p class:list={['feat-s', kp(x.data.summary)]} data-ink>{x.data.summary}</p>
+              <p class="feat-meta">{x.data.role && <span>{x.data.role}</span>}{x.data.period && <span class="it">{x.data.period}</span>}</p>
+              <a class="more" href={u(`/projects/${x.id}/`)}>閱讀全文<span class="it"> Read the story</span></a>
+            </div>
+          </article>
+        ))}
+        {projects.length > featured.length && <a class="more more-all" href={u('/projects/')}>本期全部 {projects.length} 篇作品</a>}
+      </div>
+    </section>
+  )}
+
+  {p.quote && (
+    <section class="vq" aria-label="引言">
+      <span class="vq-mark it" aria-hidden="true">“</span>
+      <blockquote class="vq-text" data-vert-scroll>{p.quote}</blockquote>
+      <p class="vq-by">— {p.name}<span class="it">{p.nameEn}</span></p>
+    </section>
+  )}
+
+  {exp.length > 0 && (
+    <section class="sx inv">
+      <Rail num={nx()} zh="履歷" en="Chronicle" />
+      <div class="sx-body">
+        <ol class="chron">
+          {exp.map((e) => (
+            <li data-rise>
+              <p class="chron-y it">{e.data.period}</p>
+              <h3 class:list={['chron-t', kp(e.data.title)]}>{e.data.title}</h3>
+              <p class="chron-o">{e.data.org}{e.data.type && <span class="chron-type">{e.data.type}</span>}</p>
+              <p class="chron-s">{e.data.summary}</p>
+            </li>
+          ))}
+        </ol>
+        <a class="more" href={u('/experience/')}>完整履歷<span class="it"> Full chronicle</span></a>
+      </div>
+    </section>
+  )}
+
+  {posts.length > 0 && (
+    <section class="sx">
+      <Rail num={nx()} zh="專欄" en="Columns" />
+      <div class="sx-body">
+        <ol class="cols3">
+          {posts.map((x) => (
+            <li data-rise>
+              <a href={u(`/blog/${x.id}/`)} data-cursor="閱讀">
+                <p class="col-d it">{fmtDate(x.data.date)}</p>
+                <h3 class:list={['col-t', kp(x.data.title)]}>{x.data.title}</h3>
+                <p class="col-s">{x.data.summary}</p>
+                <p class="col-m">約 {readMinutes(x.body)} 分鐘</p>
+              </a>
+            </li>
+          ))}
+        </ol>
+        <a class="more" href={u('/blog/')}>所有專欄<span class="it"> All columns</span></a>
+      </div>
+    </section>
+  )}
+
+  <section class="letters">
+    <span class="rule" data-rule></span>
+    <p class="letters-k">讀者來函 <span class="it">Letters to the editor</span></p>
+    <a class="letters-big" href={u('/contact/')} data-cursor="寫信">
+      <span data-ink>有話想說，<br />歡迎來信。</span>
+    </a>
+    <p class="letters-s">{p.email ? p.email : '透過聯絡頁留言'}</p>
+  </section>
+</Layout>

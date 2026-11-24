@@ -1,0 +1,174 @@
+---
+// 文藝雜誌：整站外框。紙張質感、刊頭列、目錄選單、翻頁轉場、版權頁。
+import './magazine.css';
+import Seo from '../../shared/Seo.astro';
+import Header from './components/Header.astro';
+import Footer from './components/Footer.astro';
+import { config } from '../../lib/site';
+
+interface Props { title?: string; description?: string; image?: string; page?: string }
+const { title, description, image, page = '' } = Astro.props;
+---
+<!doctype html>
+<html lang={config.lang} data-page={page}>
+<head>
+  <Seo title={title} description={description} image={image} />
+  <script is:inline>
+    // 從站內連結翻頁過來：先蓋一張紙，等 JS 把它翻走（截圖、減少動態時不做）
+    try {
+      if (sessionStorage.getItem('turn') && !location.search.includes('shot') && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('turning');
+      sessionStorage.removeItem('turn');
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到內容</a>
+  <Header />
+  <main id="main" class="main">
+    <slot />
+  </main>
+  <Footer />
+  <script>
+    import { gsap, ScrollTrigger, SplitText, still, smoothScroll, onReady, canHover } from '../../lib/motion';
+
+    const root = document.documentElement;
+    const lenis = smoothScroll({ lerp: 0.08 });
+
+    // 目錄選單（手機）：不管有沒有動畫都要能用
+    const btn = document.querySelector<HTMLButtonElement>('[data-menu]');
+    const setMenu = (open: boolean) => {
+      root.classList.toggle('menu-open', open);
+      btn?.setAttribute('aria-expanded', String(open));
+      open ? lenis?.stop() : lenis?.start();
+      if (open && !still) gsap.from('.toc li', { y: 24, opacity: 0, duration: 0.8, stagger: 0.05, ease: 'power3.out' });
+    };
+    btn?.addEventListener('click', () => setMenu(!root.classList.contains('menu-open')));
+    document.querySelectorAll('[data-menu-close]').forEach((b) => b.addEventListener('click', () => setMenu(false)));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.classList.contains('menu-open')) setMenu(false); });
+    document.querySelectorAll('[data-top]').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      lenis ? lenis.scrollTo(0, { duration: 1.6 }) : window.scrollTo({ top: 0, behavior: still ? 'auto' : 'smooth' });
+    }));
+
+    // 頁首：往下捲收起、往上捲出現
+    const hd = document.querySelector<HTMLElement>('.hd');
+    let lastY = 0;
+    const onScroll = () => {
+      const y = window.scrollY;
+      root.classList.toggle('scrolled', y > 40);
+      if (!still) root.classList.toggle('hd-hide', y > 240 && y > lastY && !root.classList.contains('menu-open'));
+      lastY = y;
+    };
+    if (hd) { window.addEventListener('scroll', onScroll, { passive: true }); onScroll(); }
+
+    // 翻頁轉場：點站內連結，一張紙從右邊翻過來蓋住，再換頁；新頁面再把紙翻走
+    const sheet = () => { const d = document.createElement('div'); d.className = 'turn'; d.setAttribute('aria-hidden', 'true'); document.body.appendChild(d); return d; };
+    if (root.classList.contains('turning')) {
+      const d = sheet();
+      root.classList.remove('turning');
+      gsap.fromTo(d, { xPercent: 0 }, { xPercent: -102, duration: 0.9, ease: 'power3.inOut', delay: 0.05, onComplete: () => d.remove() });
+    }
+    if (!still) {
+      document.addEventListener('click', (e) => {
+        const a = (e.target as HTMLElement).closest('a');
+        if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        const url = new URL(a.href, location.href);
+        if (a.target || a.hasAttribute('download') || url.origin !== location.origin || (url.pathname === location.pathname && url.hash)) return;
+        if (url.href === location.href) return;
+        e.preventDefault();
+        try { sessionStorage.setItem('turn', '1'); } catch {}
+        const d = sheet();
+        gsap.fromTo(d, { xPercent: 102 }, { xPercent: 0, duration: 0.7, ease: 'power3.inOut', onComplete: () => { location.href = url.href; } });
+      });
+      // 從上一頁按返回時，把紙拿掉
+      window.addEventListener('pageshow', (e) => { if (e.persisted) document.querySelectorAll('.turn').forEach((x) => x.remove()); });
+    }
+
+    // 中文斷詞（SplitText 拆行用）
+    const ZW = String.fromCharCode(8203);
+    const seg = 'Segmenter' in Intl ? new Intl.Segmenter('zh-Hant', { granularity: 'word' }) : null;
+    const prepareText = (t: string, el: Element) =>
+      getComputedStyle(el).wordBreak === 'keep-all' ? t.replace(/([，。、！？；：,.!?;:）」』\s])/g, '$1' + ZW)
+        : seg ? [...seg.segment(t)].map((s) => s.segment).join(ZW) : t;
+    const lines = (el: Element) => SplitText.create(el, { type: 'lines', linesClass: 'ln', prepareText, wordDelimiter: ZW });
+
+    onReady(() => {
+      const ease = 'power3.out';
+      // 墨水暈開：模糊＋淡入，一行一行
+      const ink = (targets: Element[] | NodeListOf<Element>, vars: gsap.TweenVars = {}) =>
+        gsap.from(targets, { opacity: 0, filter: 'blur(8px)', y: 14, duration: 1.6, stagger: 0.12, ease, clearProps: 'filter', ...vars });
+
+      // 1. 進場
+      const tl = gsap.timeline({ defaults: { ease } });
+      tl.from('.hd-in > *', { opacity: 0, y: -10, duration: 1, stagger: 0.08 }, 0.1);
+      document.querySelectorAll<HTMLElement>('[data-mast]').forEach((el) => {
+        const s = SplitText.create(el, { type: 'chars' });
+        tl.from(s.chars, { opacity: 0, yPercent: 30, filter: 'blur(12px)', duration: 1.8, stagger: 0.05, ease: 'power4.out', onComplete: () => s.revert() }, 0.15);
+      });
+      document.querySelectorAll<HTMLElement>('[data-vert]').forEach((el) => {
+        const s = SplitText.create(el, { type: 'chars' });
+        tl.from(s.chars, { opacity: 0, y: -30, filter: 'blur(6px)', duration: 1.6, stagger: 0.12, ease: 'power3.out', onComplete: () => s.revert() }, 0.5);
+      });
+      document.querySelectorAll('[data-ink-hero]').forEach((el, i) => {
+        const s = lines(el);
+        tl.add(ink(s.lines, { onComplete: () => s.revert() }), 0.6 + i * 0.15);
+      });
+      if (document.querySelector('[data-fade-hero]')) tl.from('[data-fade-hero]', { opacity: 0, y: 12, duration: 1.4, stagger: 0.1 }, 0.8);
+      document.querySelectorAll<HTMLElement>('[data-plate-hero]').forEach((el) => {
+        tl.fromTo(el, { clipPath: 'inset(8% 8% 8% 8%)', opacity: 0 }, { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1, duration: 2, ease: 'power4.inOut', clearProps: 'clipPath' }, 0.3);
+        const im = el.querySelector('img');
+        if (im) tl.from(im, { scale: 1.18, duration: 2.6, ease: 'power3.out' }, 0.3);
+      });
+
+      // 2. 捲到才出現
+      const once = (trigger: Element, start = 'top 85%') => ({ trigger, start, once: true });
+      document.querySelectorAll('[data-ink]').forEach((el) => {
+        const s = lines(el);
+        ink(s.lines, { scrollTrigger: once(el), onComplete: () => s.revert() });
+      });
+      ScrollTrigger.batch('[data-rise]', {
+        start: 'top 90%', once: true,
+        onEnter: (els) => gsap.from(els, { opacity: 0, y: 36, duration: 1.4, stagger: 0.12, ease }),
+      });
+      document.querySelectorAll('[data-rule]').forEach((el) => {
+        gsap.from(el, { scaleX: 0, transformOrigin: '50% 50%', duration: 1.6, ease: 'power3.inOut', scrollTrigger: once(el, 'top 95%') });
+      });
+      // 圖版：從中間往外打開，照片慢慢縮回原尺寸
+      document.querySelectorAll<HTMLElement>('[data-plate]').forEach((el) => {
+        gsap.fromTo(el, { clipPath: 'inset(12% 10% 12% 10%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.8, ease: 'power4.inOut', clearProps: 'clipPath', scrollTrigger: once(el) });
+      });
+      // 視差：照片在框裡慢慢移動
+      document.querySelectorAll<HTMLElement>('[data-parallax] img').forEach((im) => {
+        gsap.fromTo(im, { yPercent: -7 }, { yPercent: 7, ease: 'none', scrollTrigger: { trigger: im.parentElement!, start: 'top bottom', end: 'bottom top', scrub: true } });
+      });
+      // 直排標題：逐字落下
+      document.querySelectorAll<HTMLElement>('[data-vert-scroll]').forEach((el) => {
+        const s = SplitText.create(el, { type: 'chars' });
+        gsap.from(s.chars, { opacity: 0, y: -24, filter: 'blur(6px)', duration: 1.3, stagger: 0.09, ease, scrollTrigger: once(el), onComplete: () => s.revert() });
+      });
+
+      // 3. 游標：小墨點，碰到可以讀的東西變成「閱讀」
+      if (canHover) {
+        const c = document.createElement('div');
+        c.className = 'cursor';
+        c.setAttribute('aria-hidden', 'true');
+        c.innerHTML = '<span></span>';
+        document.body.appendChild(c);
+        const label = c.querySelector('span')!;
+        const x = gsap.quickTo(c, 'x', { duration: 0.5, ease: 'power3' });
+        const y = gsap.quickTo(c, 'y', { duration: 0.5, ease: 'power3' });
+        window.addEventListener('pointermove', (e) => { x(e.clientX); y(e.clientY); root.classList.add('has-cursor'); }, { passive: true });
+        document.addEventListener('pointerleave', () => root.classList.remove('has-cursor'));
+        document.querySelectorAll<HTMLElement>('[data-cursor]').forEach((el) => {
+          el.addEventListener('pointerenter', () => { label.textContent = el.dataset.cursor || ''; c.classList.add('big'); });
+          el.addEventListener('pointerleave', () => c.classList.remove('big'));
+        });
+        document.querySelectorAll<HTMLElement>('a:not([data-cursor]), button').forEach((el) => {
+          el.addEventListener('pointerenter', () => c.classList.add('link'));
+          el.addEventListener('pointerleave', () => c.classList.remove('link'));
+        });
+      }
+    });
+  </script>
+</body>
+</html>

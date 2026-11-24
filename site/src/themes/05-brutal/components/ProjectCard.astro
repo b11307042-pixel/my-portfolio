@@ -1,0 +1,33 @@
+---
+// 作品卡：row（首頁大橫排）或 tile（列表格子）
+import type { CollectionEntry } from 'astro:content';
+import Window from './Window.astro';
+import { u } from '../../../lib/site';
+interface Props { entry: CollectionEntry<'projects'>; index: number; layout?: 'row' | 'tile' }
+const { entry, index, layout = 'tile' } = Astro.props;
+const d = entry.data;
+const colors = ['y', 'p', 'b', 'm'];
+const color = colors[index % colors.length];
+---
+<article class:list={['pc', `pc-${layout}`, `c-${color}`, { flip: layout === 'row' && index % 2 === 1 }]} data-tags={d.tags.join('|')} data-tilt>
+  <a class="pc-link" href={u(`/projects/${entry.id}/`)} aria-label={`看作品：${d.title}`}></a>
+  <div class="pc-media">
+    <Window src={d.cover} alt={`${d.title} 截圖`} label={`${entry.id}.app`} color={color} title={d.title} tag={d.tags[0]} note={d.results[0]} index={index} />
+  </div>
+  <div class="pc-body">
+    <div class="pc-top">
+      <span class="pc-no">{String(index + 1).padStart(2, '0')}</span>
+      {d.period && <span class="pc-period">{d.period}</span>}
+    </div>
+    <h3 class="pc-title">{d.title}</h3>
+    <p class="pc-sum">{d.summary}</p>
+    {layout === 'row' && d.results.length > 0 && (
+      <ul class="pc-results">{d.results.slice(0, 2).map((r) => <li>{r}</li>)}</ul>
+    )}
+    {d.tags.length > 0 && <ul class="tags">{d.tags.map((t) => <li>{t}</li>)}</ul>}
+    <span class="pc-go" aria-hidden="true">
+      <span>看個案</span>
+      <svg viewBox="0 0 24 24"><path d="M5 12h13M12 5l7 7-7 7" /></svg>
+    </span>
+  </div>
+</article>

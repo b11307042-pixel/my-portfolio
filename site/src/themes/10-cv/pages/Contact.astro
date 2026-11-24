@@ -1,0 +1,42 @@
+---
+import Layout from '../Layout.astro';
+import Crumbs from '../components/Crumbs.astro';
+import Sec from '../components/Sec.astro';
+import ContactForm from '../../../shared/ContactForm.astro';
+import { getProfile, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const host = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+---
+<Layout title="聯絡" page="contact">
+  <header class="ph">
+    <Crumbs items={[{ label: '聯絡' }]} />
+    <h1 class="ph-t" data-in>聯絡</h1>
+    <p class="ph-s" data-in>實習、專案合作或只是想交流，都歡迎。通常一兩天內回覆。</p>
+  </header>
+
+  {p.email && (
+    <div class="mailbox" data-in>
+      <p class="lbl mono">Email</p>
+      <a class="mb-addr" href={`mailto:${p.email}`}>{p.email}</a>
+      <div class="mb-btns">
+        <button type="button" class="btn primary" data-copy={p.email}>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 3.5V3a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+          <span data-copy-label>複製 Email</span>
+        </button>
+        <a class="btn" href={`mailto:${p.email}`}>開啟郵件 App</a>
+      </div>
+    </div>
+  )}
+
+  <Sec label="留言" id="form">
+    <div data-in><ContactForm email={p.email} /></div>
+  </Sec>
+
+  <Sec label="其他" id="else">
+    <dl class="kv links">
+      {p.status && <div data-in><dt>現在</dt><dd><i class="dot" aria-hidden="true"></i>{p.status}</dd></div>}
+      {p.location && <div data-in><dt>地點</dt><dd>{p.location}</dd></div>}
+      {p.links.map((l) => <div data-in><dt>{l.label}</dt><dd><a href={u(l.url)} target="_blank" rel="noopener">{host(l.url)}<span class="ext" aria-hidden="true">↗</span></a></dd></div>)}
+    </dl>
+  </Sec>
+</Layout>

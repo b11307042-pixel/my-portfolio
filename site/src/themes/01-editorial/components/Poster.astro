@@ -1,0 +1,14 @@
+---
+// 沒有作品截圖時的封面：一張瑞士海報。實心色塊、網格細線、巨大編號、標題照網格排，不是淡淡的大字。
+interface Props { title: string; index: number; tags?: string[]; period?: string; ratio?: string; size?: 'lg' | 'md' | 'sm' }
+const { title, index, tags = [], period, ratio = '16 / 10', size = 'md' } = Astro.props;
+const nn = String(index + 1).padStart(2, '0');
+const tone = ['ink', 'red', 'paper'][index % 3];
+---
+<div class:list={['poster', `tone-${tone}`, `pst-${size}`]} style={`aspect-ratio:${ratio}`} data-img role="img" aria-label={`${title}（沒有截圖）`}>
+  <span class="pst-grid" aria-hidden="true"></span>
+  <span class="pst-top mono" aria-hidden="true"><span>No.{nn}</span><span>{tags.slice(0, 3).join(' / ')}</span></span>
+  <span class="pst-title" aria-hidden="true">{title}</span>
+  <span class="pst-n" aria-hidden="true">{nn}</span>
+  {period && <span class="pst-period mono" aria-hidden="true">{period}</span>}
+</div>

@@ -1,0 +1,6 @@
+---
+// 中文標題照標點分段，每段盡量不在中間斷行（例如「把複雜的流程，」「做成……」）
+interface Props { text: string }
+const parts = (Astro.props.text || '').split(/(?<=[，、。：；！？,;:!?])/).filter(Boolean);
+---
+{parts.map((s) => <span class="ph">{s}</span>)}

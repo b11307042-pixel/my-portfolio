@@ -1,0 +1,338 @@
+---
+// 復古桌面：整站外框。選單列（時鐘）、桌面圖示、視窗（可拖曳、關閉、放大、收合）、⌘K 尋找、手機 Dock。
+import Seo from '../../shared/Seo.astro';
+import MenuBar from './components/MenuBar.astro';
+import DeskIcons from './components/DeskIcons.astro';
+import Dock from './components/Dock.astro';
+import Palette from './components/Palette.astro';
+import { config, getProfile, u } from '../../lib/site';
+import './desktop.css';
+
+interface Props { title?: string; description?: string; image?: string; stage?: string }
+const { title, description, image, stage = '' } = Astro.props;
+const p = (await getProfile()).data;
+const year = new Date().getFullYear();
+---
+<!doctype html>
+<html lang={config.lang || 'zh-Hant'}>
+  <head>
+    <Seo title={title} description={description} image={image} />
+  </head>
+  <body data-home={u('/')}>
+    <a class="skip" href="#main">跳到主要內容</a>
+    <MenuBar />
+    <div class="desk" data-desk>
+      <main id="main" class:list={['stage', stage]}>
+        <slot />
+      </main>
+      <DeskIcons />
+      <footer class="sysfoot">
+        <p>© {year} {p.name}{p.location && <> · {p.location}</>}</p>
+        {p.links.length > 0 && <p class="sysfoot-links">{p.links.map((l) => <a href={u(l.url)} target="_blank" rel="noopener">{l.label}</a>)}</p>}
+        <p class="sysfoot-tip">按 <kbd><span data-mod>⌘</span>K</kbd> 尋找任何東西</p>
+      </footer>
+    </div>
+    <Dock />
+    <Palette />
+    <div class="zoomfx" aria-hidden="true" data-zoomfx></div>
+    <div class="toast" role="status" aria-live="polite" data-toast></div>
+  </body>
+</html>
+
+<script>
+  import { gsap, ScrollTrigger, still, onReady } from '../../lib/motion';
+  import { Draggable } from 'gsap/Draggable';
+  gsap.registerPlugin(Draggable);
+  // 分頁切回來或很慢的裝置：動畫照實際時間跑完，不要拖慢（開場的視窗才不會卡在隱藏）
+  gsap.ticker.lagSmoothing(0);
+
+  const root = document.documentElement;
+  if (still) root.classList.add('is-still');
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  if (!isMac) document.querySelectorAll('[data-mod]').forEach((el) => (el.textContent = 'Ctrl+'));
+  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const home = document.body.dataset.home || '/';
+
+  // ───── 時鐘 ─────
+  const cd = document.querySelector('[data-clock-d]');
+  const ct = document.querySelector('[data-clock-t]');
+  const tick = () => {
+    const d = new Date();
+    if (cd) cd.textContent = '週' + '日一二三四五六'[d.getDay()];
+    if (ct) ct.innerHTML = `${String(d.getHours()).padStart(2, '0')}<span class="colon">:</span>${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  tick();
+  setInterval(tick, 10000);
+
+  // ───── 小提示 ─────
+  const toast = document.querySelector<HTMLElement>('[data-toast]')!;
+  let tt: number | undefined;
+  const say = (msg: string) => {
+    toast.textContent = msg;
+    toast.classList.add('on');
+    clearTimeout(tt);
+    tt = window.setTimeout(() => toast.classList.remove('on'), 2200);
+  };
+  const copy = async (text: string) => {
+    try { await navigator.clipboard.writeText(text); say(`已複製 ${text}`); }
+    catch { say('沒辦法複製，請手動選取'); }
+  };
+  document.querySelectorAll<HTMLElement>('[data-copy]:not([data-cmd])').forEach((b) => b.addEventListener('click', () => copy(b.dataset.copy || '')));
+
+  // ───── 經典的「縮放框」：從 a 框到 b 框畫幾個外框 ─────
+  const fx = document.querySelector<HTMLElement>('[data-zoomfx]')!;
+  const zoomRects = (a: DOMRect, b: DOMRect, n = 7, dur = 0.34) => new Promise<void>((done) => {
+    if (still) return done();
+    const ease = gsap.parseEase('power2.in');
+    const box = document.createElement('div');
+    fx.appendChild(box);
+    const tl = gsap.timeline({ onComplete: () => { box.remove(); done(); } });
+    for (let i = 0; i < n; i++) {
+      const t = ease((i + 1) / n);
+      const r = document.createElement('i');
+      const L = (k: 'left' | 'top' | 'width' | 'height') => a[k] + (b[k] - a[k]) * t;
+      Object.assign(r.style, { left: L('left') + 'px', top: L('top') + 'px', width: L('width') + 'px', height: L('height') + 'px', opacity: '0' });
+      box.appendChild(r);
+      tl.set(r, { opacity: 1 }, (i * dur) / n).set(r, { opacity: 0 }, (i * dur) / n + dur * 0.4);
+    }
+  });
+  const shrink = (r: DOMRect, k = 0.12) => new DOMRect(r.left + r.width * (0.5 - k / 2), r.top + r.height * (0.5 - k / 2), r.width * k, r.height * k);
+  const stageRect = () => {
+    const m = document.querySelector('[data-main]') || document.querySelector('.stage');
+    const r = m!.getBoundingClientRect();
+    const top = Math.max(r.top, 30);
+    return new DOMRect(r.left, top, r.width, Math.max(80, Math.min(r.bottom, innerHeight - 20) - top));
+  };
+  let leaving = false;
+  const go = (href: string, from?: Element | DOMRect | null) => {
+    if (still || !from || leaving) { location.href = href; return; }
+    leaving = true;
+    const a = from instanceof DOMRect ? from : from.getBoundingClientRect();
+    zoomRects(a, stageRect()).then(() => { location.href = href; });
+    setTimeout(() => (leaving = false), 1500);
+  };
+
+  // ───── 桌面圖示：點一下選取，再點一下（或按兩下）打開 ─────
+  const icons = [...document.querySelectorAll<HTMLAnchorElement>('.dicon')];
+  const select = (a: HTMLElement | null) => icons.forEach((i) => i.classList.toggle('is-selected', i === a));
+  const openIcon = (a: HTMLAnchorElement) => {
+    select(a);
+    if (a.target === '_blank') { window.open(a.href, '_blank', 'noopener'); return; }
+    go(a.href, a.querySelector('svg'));
+  };
+  icons.forEach((a) => a.addEventListener('click', (e) => {
+    if (!fine || e.detail === 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    if (e.detail >= 2 || a.classList.contains('is-selected')) openIcon(a);
+    else select(a);
+  }));
+  document.addEventListener('pointerdown', (e) => { if (!(e.target as Element).closest('.dicon')) select(null); });
+
+  // ───── 視窗 ─────
+  const wins = [...document.querySelectorAll<HTMLElement>('[data-win]')];
+  let z = 10;
+  const activate = (w: HTMLElement) => {
+    if (w.classList.contains('is-active') && w.style.zIndex) return;
+    wins.forEach((x) => x.classList.toggle('is-active', x === w));
+    w.style.zIndex = String(++z);
+  };
+  const restoreBtn = document.querySelector<HTMLButtonElement>('[data-restore]');
+  const closed = new Set<HTMLElement>();
+  const titleOf = (w: HTMLElement) => w.querySelector('.win-tt')?.textContent || '';
+  const openFx = (w: HTMLElement, delay = 0, from?: DOMRect) => {
+    if (still) return;
+    const src = from || shrink(w.getBoundingClientRect());
+    gsap.from(w, { autoAlpha: 0, duration: 0.01, delay: delay + 0.3 });
+    gsap.delayedCall(delay, () => zoomRects(src, w.getBoundingClientRect()));
+  };
+  wins.forEach((w) => {
+    w.addEventListener('pointerdown', () => activate(w));
+    w.addEventListener('focusin', () => activate(w));
+    const bar = w.querySelector<HTMLElement>('[data-bar]');
+    const parts = [...w.querySelectorAll<HTMLElement>('.win-info, .win-body, .win-foot')];
+    const shadeBtn = w.querySelector<HTMLButtonElement>('[data-shade]');
+    const shade = () => {
+      const on = !w.classList.contains('is-shaded');
+      w.classList.toggle('is-shaded', on);
+      parts.forEach((b) => (b.hidden = on));
+      shadeBtn?.setAttribute('aria-expanded', String(!on));
+    };
+    shadeBtn?.addEventListener('click', shade);
+    bar?.addEventListener('dblclick', (e) => { if (!(e.target as Element).closest('button')) shade(); });
+    w.querySelector('[data-close]')?.addEventListener('click', () => {
+      if (w.hasAttribute('data-main')) {
+        const ic = document.querySelector<HTMLElement>('.dicon[data-icon="/"] svg');
+        if (ic && ic.getClientRects().length && !still) zoomRects(w.getBoundingClientRect(), ic.getBoundingClientRect()).then(() => (location.href = home));
+        else location.href = home;
+        return;
+      }
+      const r = w.getBoundingClientRect();
+      w.classList.add('is-closed');
+      closed.add(w);
+      zoomRects(r, shrink(r, 0.04));
+      if (restoreBtn) restoreBtn.hidden = false;
+      say(`已關閉「${titleOf(w)}」，選單列的「還原視窗」可以叫回來`);
+      restoreBtn?.focus();
+    });
+    const zoomBtn = w.querySelector<HTMLButtonElement>('[data-zoom]');
+    zoomBtn?.addEventListener('click', () => {
+      const a = w.getBoundingClientRect();
+      const on = !w.classList.contains('is-zoomed');
+      w.classList.toggle('is-zoomed', on);
+      zoomBtn.setAttribute('aria-pressed', String(on));
+      gsap.set(w, { x: 0, y: 0 });
+      Draggable.get(w)?.update();
+      activate(w);
+      zoomRects(a, w.getBoundingClientRect(), 5, 0.24);
+    });
+  });
+  restoreBtn?.addEventListener('click', () => {
+    closed.forEach((w) => { w.classList.remove('is-closed'); openFx(w); });
+    closed.clear();
+    restoreBtn.hidden = true;
+  });
+  const main = document.querySelector<HTMLElement>('[data-main]') || wins[0];
+  if (main) activate(main);
+
+  // 拖曳：只在有滑鼠、夠寬的螢幕
+  if (fine && matchMedia('(min-width: 900px)').matches) {
+    wins.forEach((w) => {
+      const bar = w.querySelector<HTMLElement>('[data-bar]');
+      if (!bar) return;
+      Draggable.create(w, { trigger: bar, type: 'x,y', bounds: '[data-desk]', zIndexBoost: false, cursor: 'default', activeCursor: 'move', onPress: () => activate(w) });
+    });
+  }
+
+  // ───── 圖片檢視器：點縮圖換大圖 ─────
+  document.querySelectorAll<HTMLElement>('[data-viewer]').forEach((v) => {
+    const big = v.querySelector<HTMLImageElement>('[data-viewer-img]');
+    const name = v.closest('[data-win]')?.querySelector('.win-tt');
+    v.querySelectorAll<HTMLButtonElement>('[data-thumb]').forEach((b) => b.addEventListener('click', () => {
+      if (!big) return;
+      big.src = b.dataset.thumb!;
+      big.alt = b.dataset.alt || '';
+      if (name && b.dataset.name) name.textContent = b.dataset.name;
+      v.querySelectorAll('[data-thumb]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    }));
+  });
+
+  // ───── 顯示方式切換（圖示／列表）─────
+  document.querySelectorAll<HTMLElement>('[data-viewbox]').forEach((box) => {
+    const host = box.closest('[data-win]')?.querySelector<HTMLElement>('[data-views]');
+    box.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((b) => b.addEventListener('click', () => {
+      const v = b.dataset.view!;
+      if (!host || host.dataset.views === v) return;
+      host.dataset.views = v;
+      box.querySelectorAll('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      if (!still) gsap.from(host.children, { opacity: 0, y: 6, duration: 0.25, stagger: 0.03, ease: 'steps(3)' });
+    }));
+  });
+
+  // ───── ⌘K 尋找 ─────
+  const pal = document.querySelector<HTMLElement>('[data-palette]')!;
+  const palBox = pal.querySelector<HTMLElement>('.pal-box')!;
+  const input = pal.querySelector<HTMLInputElement>('input')!;
+  const items = [...pal.querySelectorAll<HTMLElement>('[data-cmd]')];
+  const groups = [...pal.querySelectorAll<HTMLElement>('[data-group]')];
+  const empty = pal.querySelector<HTMLElement>('[data-empty]')!;
+  let active = 0;
+  let lastFocus: Element | null = null;
+  const visible = () => items.filter((i) => !i.hidden);
+  const mark = (n: number) => {
+    const v = visible();
+    items.forEach((el) => el.setAttribute('aria-selected', 'false'));
+    if (!v.length) { input.removeAttribute('aria-activedescendant'); return; }
+    active = (n + v.length) % v.length;
+    v[active].setAttribute('aria-selected', 'true');
+    v[active].scrollIntoView({ block: 'nearest' });
+    input.setAttribute('aria-activedescendant', v[active].id);
+  };
+  const filter = () => {
+    const q = input.value.trim().toLowerCase();
+    items.forEach((el) => { el.hidden = !!q && !(el.dataset.search || '').includes(q) && !(el.textContent || '').toLowerCase().includes(q); });
+    groups.forEach((g) => { g.hidden = ![...g.querySelectorAll<HTMLElement>('[data-cmd]')].some((i) => !i.hidden); });
+    empty.hidden = visible().length > 0;
+    mark(0);
+  };
+  const open = (from?: Element | null) => {
+    if (!pal.hidden) return;
+    lastFocus = document.activeElement;
+    pal.hidden = false;
+    root.classList.add('pal-open');
+    input.value = '';
+    filter();
+    input.focus();
+    if (!still) {
+      const b = palBox.getBoundingClientRect();
+      const src = from && from.getClientRects().length ? from.getBoundingClientRect() : shrink(b);
+      gsap.from(palBox, { autoAlpha: 0, duration: 0.01, delay: 0.26 });
+      zoomRects(src, b, 6, 0.26);
+    }
+  };
+  const close = () => {
+    if (pal.hidden) return;
+    pal.hidden = true;
+    root.classList.remove('pal-open');
+    (lastFocus as HTMLElement | null)?.focus?.();
+  };
+  const run = (el: HTMLElement) => {
+    const { href, copy: text, ext } = el.dataset;
+    const r = palBox.getBoundingClientRect();
+    close();
+    if (text) copy(text);
+    else if (href && ext) window.open(href, '_blank', 'noopener');
+    else if (href && href.startsWith('mailto:')) location.href = href;
+    else if (href) go(href, r);
+  };
+  document.querySelectorAll<HTMLElement>('[data-palette-open]').forEach((b) => b.addEventListener('click', () => open(b)));
+  pal.querySelector('.pal-scrim')!.addEventListener('click', close);
+  pal.querySelectorAll('[data-pal-close]').forEach((b) => b.addEventListener('click', close));
+  pal.querySelector('[data-pal-go]')!.addEventListener('click', () => { const v = visible()[active]; if (v) run(v); });
+  input.addEventListener('input', filter);
+  items.forEach((el) => {
+    el.addEventListener('click', () => run(el));
+    el.addEventListener('mousemove', () => { const i = visible().indexOf(el); if (i !== active) mark(i); });
+  });
+  document.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if ((e.metaKey || e.ctrlKey) && k === 'k') { e.preventDefault(); pal.hidden ? open() : close(); return; }
+    if (pal.hidden) {
+      const t = e.target as HTMLElement;
+      if (k === '/' && !/input|textarea|select/i.test(t.tagName)) { e.preventDefault(); open(); }
+      return;
+    }
+    if (k === 'escape') { e.preventDefault(); close(); }
+    else if (k === 'arrowdown') { e.preventDefault(); mark(active + 1); }
+    else if (k === 'arrowup') { e.preventDefault(); mark(active - 1); }
+    else if (k === 'enter' && document.activeElement === input) { e.preventDefault(); const v = visible()[active]; if (v) run(v); }
+    else if (k === 'tab') {
+      // 焦點留在對話框裡
+      const f = [...palBox.querySelectorAll<HTMLElement>('input, button')];
+      const i = f.indexOf(document.activeElement as HTMLElement);
+      e.preventDefault();
+      f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+  });
+
+  // ───── 開場：選單列落下，視窗一個一個用縮放框打開 ─────
+  onReady(() => {
+    gsap.from('.menubar', { yPercent: -100, duration: 0.35, ease: 'steps(4)' });
+    gsap.from('.dicon', { autoAlpha: 0, duration: 0.01, stagger: 0.05, delay: 0.1 });
+    const here = document.querySelector<HTMLElement>('.dicon[aria-current] svg');
+    let first = true;
+    ScrollTrigger.batch(wins.filter((w) => w.getClientRects().length), {
+      start: 'top 96%', once: true,
+      onEnter: (els) => {
+        els.forEach((el, i) => {
+          const w = el as HTMLElement;
+          const from = first && w.hasAttribute('data-main') && here && here.getClientRects().length ? here.getBoundingClientRect() : undefined;
+          openFx(w, (first ? 0.25 : 0) + i * 0.14, from);
+        });
+        first = false;
+      },
+    });
+    document.querySelectorAll<HTMLElement>('[data-prog]').forEach((el) => {
+      gsap.from(el, { width: 0, duration: 1.1, ease: 'steps(12)', scrollTrigger: { trigger: el, start: 'top 95%', once: true } });
+    });
+  });
+</script>

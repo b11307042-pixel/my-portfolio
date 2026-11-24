@@ -1,0 +1,38 @@
+---
+import { getProfile, u } from '../../../lib/site';
+import { year, month, season, seasonEn } from './issue';
+import Seal from './Seal.astro';
+const p = (await getProfile()).data;
+const sealText = [...p.name].length > 2 ? [...p.name].slice(-2).join('') : p.name;
+---
+<footer class="ft">
+  <div class="ft-end">
+    <span class="rule" data-rule></span>
+    <p class="ft-fin"><span class="it">Fin.</span><span class="ft-fin-zh">本期完</span></p>
+  </div>
+  <div class="ft-grid">
+    <div class="ft-col ft-col-1">
+      <Seal text={sealText} size="64px" />
+      <p class="ft-name">{p.name}{p.nameEn && <span class="it">{p.nameEn}</span>}</p>
+      <p class="ft-role">{p.role}</p>
+    </div>
+    <dl class="ft-col ft-colophon">
+      <div><dt>本期</dt><dd>No.{month}　{year} {season}季號 <span class="it">{seasonEn} Issue</span></dd></div>
+      <div><dt>發行</dt><dd>{p.name}{p.location && `・${p.location}`}</dd></div>
+      {p.email && <div><dt>來函</dt><dd><a class="ln-a" href={`mailto:${p.email}`}>{p.email}</a></dd></div>}
+      <div><dt>字體</dt><dd>Noto Serif TC ・ <span class="it">Fraunces</span></dd></div>
+    </dl>
+    <div class="ft-col ft-links">
+      <p class="ft-k">其他地方</p>
+      <ul>
+        {p.links.map((l) => <li><a class="ln-a" href={u(l.url)} target="_blank" rel="noopener">{l.label}</a></li>)}
+        {p.resume && <li><a class="ln-a" href={u(p.resume)} target="_blank" rel="noopener">履歷 PDF</a></li>}
+        <li><a class="ln-a" href={u('/contact/')}>讀者來函</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="ft-bot">
+    <span>© {year} {p.name}　版權所有</span>
+    <a href="#top" data-top class="ln-a">回到封面 <span class="it">Back to cover</span></a>
+  </div>
+</footer>

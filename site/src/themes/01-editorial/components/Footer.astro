@@ -1,0 +1,30 @@
+---
+import { getProfile, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const sig = p.nameEn || p.name;
+const latin = /^[\x00-\x7F]+$/.test(sig);
+// 頁尾署名撐滿整個寬度：拉丁字每個字約 0.56em 寬、中文每字 1em
+const fit = `--fit:${(latin ? sig.length * 0.5 : sig.length * 1.02).toFixed(2)}`;
+const year = new Date().getFullYear();
+---
+<footer class="ft">
+  <span class="rule" data-rule></span>
+  <div class="ft-top">
+    <p class="mono ft-k">(Contact)</p>
+    <div class="ft-cta">
+      <p class="ft-say">有想法、有職缺、想認識？</p>
+      {p.email ? <a class="ft-mail ul" href={`mailto:${p.email}`}>{p.email}</a> : <a class="ft-mail ul" href={u('/contact/')}>聯絡我</a>}
+    </div>
+    <ul class="ft-links">
+      {p.links.map((l) => <li><a class="ul" href={u(l.url)} target="_blank" rel="noopener">{l.label}<span aria-hidden="true">↗</span></a></li>)}
+      {p.resume && <li><a class="ul" href={u(p.resume)} target="_blank" rel="noopener">履歷 PDF<span aria-hidden="true">↗</span></a></li>}
+    </ul>
+  </div>
+  <p class:list={['ft-sig', { latin }]} style={fit} aria-hidden="true">{sig}</p>
+  <div class="ft-bot mono">
+    <span>© {year} {p.name}</span>
+    <span class="ft-colo">Swiss Poster · Inter Tight &amp; Noto Sans TC</span>
+    {p.location && <span class="ft-loc">{p.location}</span>}
+    <a href="#top" data-top class="ul">Back to top ↑</a>
+  </div>
+</footer>

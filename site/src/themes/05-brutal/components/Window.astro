@@ -1,0 +1,37 @@
+---
+// 粗框視窗：假的標題列＋作品截圖。沒有截圖時，畫一張「海報」：網點底、作品名、第一個標籤、第一個成果
+import { img } from '../../../lib/site';
+interface Props {
+  src?: string; alt?: string; label?: string; color?: string;
+  title?: string; tag?: string; note?: string; index?: number; ratio?: string; eager?: boolean; class?: string;
+}
+const { src, alt = '', label = '', color = 'y', title = '', tag, note, index = 0, ratio = '16 / 10', eager = false, class: cls = '' } = Astro.props;
+const url = img(src);
+const pat = ['dots', 'grid', 'stripes', 'checks'][index % 4];
+---
+<figure class:list={['win', `c-${color}`, cls]}>
+  <figcaption class="win-bar">
+    <span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="win-label">{label}</span>
+    <span class="win-ctrl" aria-hidden="true">
+      <svg viewBox="0 0 12 12"><path d="M2 6h8" /></svg>
+      <svg viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8" /></svg>
+    </span>
+  </figcaption>
+  <div class="win-view" style={`aspect-ratio:${ratio}`}>
+    {url ? (
+      <img src={url} alt={alt} loading={eager ? 'eager' : 'lazy'} />
+    ) : (
+      <div class:list={['poster', `pat-${pat}`]}>
+        <span class="poster-no" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+        <div class="poster-card">
+          <span class="poster-skel" aria-hidden="true"><i></i><i></i><i></i></span>
+          <strong class="poster-title">{title}</strong>
+          {note && <span class="poster-note">{note}</span>}
+        </div>
+        {tag && <span class="poster-tag">{tag}</span>}
+        <svg class="poster-cursor" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 2l22 12-10 2-4 10z" /></svg>
+      </div>
+    )}
+  </div>
+</figure>

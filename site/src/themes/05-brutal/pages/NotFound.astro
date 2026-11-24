@@ -1,0 +1,19 @@
+---
+import Layout from '../Layout.astro';
+import { u } from '../../../lib/site';
+---
+<Layout title="找不到這一頁" page="404">
+  <section class="wrap nf">
+    <div class="nf-digits" data-stage aria-hidden="true">
+      <span class="nf-d c-y" data-drag>4</span>
+      <span class="nf-d c-p" data-drag>0</span>
+      <span class="nf-d c-b" data-drag>4</span>
+    </div>
+    <h1 class="nf-title">這一頁不見了</h1>
+    <p class="nf-lead">可能網址打錯，或是這頁已經搬家。數字可以拖著玩，玩夠了就回首頁吧。</p>
+    <div class="nf-ctas">
+      <a class="btn btn-y btn-lg" href={u('/')}>回首頁</a>
+      <a class="btn btn-w btn-lg" href={u('/projects/')}>看作品</a>
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,24 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Cover from './Cover.astro';
+import { u } from '../../../lib/site';
+interface Props { entry: CollectionEntry<'projects'>; index: number; big?: boolean }
+const { entry, index, big = false } = Astro.props;
+const d = entry.data;
+---
+<article class:list={['pc', { 'pc-big': big }]} data-tags={d.tags.join('|')} data-tilt>
+  <a class="pc-link" href={u(`/projects/${entry.id}/`)} aria-label={`看作品：${d.title}`}></a>
+  <Cover src={d.cover} alt={`${d.title} 截圖`} index={index} title={d.title} tag={d.tags[0]} note={d.results[0]} size={big ? 'lg' : 'md'} />
+  <div class="pc-body">
+    <div class="pc-meta">
+      <span class="pc-no">{String(index + 1).padStart(2, '0')}</span>
+      {d.period && <span>{d.period}</span>}
+    </div>
+    <h3 class="pc-title">{d.title}</h3>
+    <p class="pc-sum">{d.summary}</p>
+    <div class="pc-foot">
+      {d.tags.length > 0 ? <ul class="pills">{d.tags.slice(0, 4).map((t) => <li>{t}</li>)}</ul> : <span></span>}
+      <span class="pc-go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" /></svg></span>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,132 @@
+---
+import Layout from '../Layout.astro';
+import WorkRow from '../components/WorkRow.astro';
+import Marquee from '../components/Marquee.astro';
+import Arrow from '../components/Arrow.astro';
+import Phrase from '../components/Phrase.astro';
+import { getProfile, getProjects, getExperience, getPosts, u, img, fmtDate } from '../../../lib/site';
+const profile = await getProfile();
+const p = profile.data;
+// 首頁「關於」那段大字：用自傳裡第一段夠長的文字；太長就切在句號
+const clean = (s: string) => s.replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`>#]/g, '').trim();
+const paras = (profile.body || '').split(/\n\s*\n/).map(clean).filter((s) => s && !s.startsWith('-'));
+let story = paras.find((s) => s.length >= 40) || p.intro;
+if (story.length > 150) { const cut = story.slice(0, 150).lastIndexOf('。'); story = cut > 40 ? story.slice(0, cut + 1) : story; }
+const projects = await getProjects();
+const featured = projects.filter((x) => x.data.featured);
+const work = (featured.length ? featured : projects).slice(0, 5);
+const exp = (await getExperience()).slice(0, 4);
+const posts = (await getPosts()).slice(0, 2);
+const skills = p.skills.flatMap((s) => s.items);
+const tags = skills.length ? skills : [...new Set(projects.flatMap((x) => x.data.tags))];
+const photo = p.photos.find((x) => x !== p.avatar);
+const year = new Date().getFullYear();
+---
+<Layout page="home">
+  <section class="hero pad">
+    <div class="hero-meta mono" data-up>
+      <span>(Portfolio ©{year})</span>
+      <span class="hide-s">{p.role}</span>
+      {p.location && <span>{p.location}</span>}
+    </div>
+    <h1 class="hero-name"><span class="fit" data-fit data-fit-max="0.3"><span data-hero-name>{p.nameEn || p.name}</span></span></h1>
+    <div class:list={['hero-grid', { 'no-photo': !p.avatar }]}>
+      <div class="hero-copy">
+        <p class="hero-tag" data-split><Phrase text={p.tagline} /></p>
+        <p class="hero-intro" data-up>{p.intro}</p>
+        <div class="hero-cta" data-up>
+          <a class="btn btn-acc" href={u('/projects/')} data-magnet><span>看作品</span><Arrow /></a>
+          <a class="btn btn-line" href={u('/contact/')} data-magnet><span>聯絡我</span></a>
+        </div>
+      </div>
+      {p.avatar ? (
+        <figure class="hero-pic" data-lift>
+          <div class="media" data-media style="aspect-ratio:4 / 5"><img class="par" src={img(p.avatar)} alt={p.name} fetchpriority="high" /></div>
+          <figcaption class="mono"><span>{p.name}</span><span>{p.status ? 'Available' : 'Portrait'}</span></figcaption>
+        </figure>
+      ) : (
+        <aside class="hero-card" data-up>
+          <p class="mono hero-card-k"><span class="pulse"></span>Currently</p>
+          <p class="hero-card-t">{p.status || p.role}</p>
+          <dl class="mono">
+            {p.location && <div><dt>Based</dt><dd>{p.location}</dd></div>}
+            <div><dt>Work</dt><dd>{String(projects.length).padStart(2, '0')} projects</dd></div>
+            {p.email && <div><dt>Mail</dt><dd>{p.email}</dd></div>}
+          </dl>
+        </aside>
+      )}
+    </div>
+    <div class="hero-foot mono" data-up>
+      <a class="hero-scroll" href="#work"><span class="hero-scroll-line" aria-hidden="true"></span>Scroll</a>
+      <span class="hero-foot-c">{p.status ? <><span class="pulse"></span> {p.status}</> : p.role}</span>
+      <span>{work.length > 0 ? `Selected work — ${String(work.length).padStart(2, '0')}` : `©${year}`}</span>
+    </div>
+  </section>
+
+  <Marquee items={tags} />
+
+  {work.length > 0 && (
+    <section class="sec pad" id="work">
+      <header class="sh">
+        <h2 class="sh-t"><span data-split>Selected Work</span><sup class="mono">({String(work.length).padStart(2, '0')})</sup></h2>
+        <p class="sh-r mono">精選作品 — 點進去看過程</p>
+      </header>
+      <div class="works">{work.map((x, i) => <WorkRow project={x} index={i} />)}</div>
+      {projects.length > work.length && (
+        <a class="more" href={u('/projects/')} data-magnet><span>全部作品（{projects.length}）</span><Arrow /></a>
+      )}
+    </section>
+  )}
+
+  <section class="sec pad about-t">
+    <p class="mono k">(About) — 關於</p>
+    <div class:list={['about-grid', { 'no-photo': !photo }]}>
+      <p class="about-big" data-scrub-text>{story}</p>
+      {photo && <figure class="about-pic" data-lift><div class="media" data-media style="aspect-ratio:4 / 5"><img class="par" src={img(photo)} alt="" loading="lazy" decoding="async" /></div></figure>}
+    </div>
+    {p.highlights.length > 0 && (
+      <ul class="stats" data-stagger>
+        {p.highlights.map((h) => <li><span class="stat-v" data-count>{h.value}</span><span class="stat-l">{h.label}</span></li>)}
+      </ul>
+    )}
+    <a class="more" href={u('/about/')} data-magnet><span>更多關於我</span><Arrow /></a>
+  </section>
+
+  {exp.length > 0 && (
+    <section class="sec pad">
+      <header class="sh">
+        <h2 class="sh-t"><span data-split>Experience</span><sup class="mono">({String(exp.length).padStart(2, '0')})</sup></h2>
+        <a class="sh-r mono ul" href={u('/experience/')}>完整經歷 →</a>
+      </header>
+      <ul class="xrows">
+        {exp.map((x) => (
+          <li class="xrow">
+            <span class="xrow-p mono">{x.data.period}</span>
+            <span class="xrow-t">{x.data.title}</span>
+            <span class="xrow-o">{x.data.org}</span>
+            <span class="xrow-k mono">{x.data.type}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {posts.length > 0 && (
+    <section class="sec pad">
+      <header class="sh">
+        <h2 class="sh-t"><span data-split>Journal</span><sup class="mono">({String(posts.length).padStart(2, '0')})</sup></h2>
+        <a class="sh-r mono ul" href={u('/blog/')}>全部文章 →</a>
+      </header>
+      <div class="pcards" data-stagger>
+        {posts.map((x) => (
+          <a class="pcard" href={u(`/blog/${x.id}/`)}>
+            <span class="mono pcard-d">{fmtDate(x.data.date)}{x.data.tags[0] ? ` — ${x.data.tags[0]}` : ''}</span>
+            <span class="pcard-t"><Phrase text={x.data.title} /></span>
+            <span class="pcard-s">{x.data.summary}</span>
+            <span class="pcard-go"><Arrow dir="ne" /></span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+</Layout>

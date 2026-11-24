@@ -1,0 +1,44 @@
+---
+import Layout from '../Layout.astro';
+import Win from '../components/Win.astro';
+import Icon from '../components/Icon.astro';
+import ContactForm from '../../../shared/ContactForm.astro';
+import { getProfile, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+---
+<Layout title="聯絡" stage="page">
+  <Win id="w-main" title="新郵件" icon="mail" class="w-main w-compose" main label="寫信給我" info={p.email ? `收件人：${p.email}` : '收件人：我'}>
+    <header class="doc-head">
+      <p class="kicker">Contact</p>
+      <h1 class="doc-title">來聊聊吧</h1>
+      <p class="doc-lead">{p.status ? `${p.status}。` : ''}實習、合作或只是想交流，都歡迎來信，通常一兩天內回覆。</p>
+    </header>
+    <ContactForm email={p.email} />
+  </Win>
+  <div class="side">
+    <Win id="w-card" title="通訊錄" icon="app" class="w-card" plain label="聯絡方式">
+      <div class="idcard idcard-row">
+        <span class="idcard-ic" aria-hidden="true"><Icon kind="mail" size={48} /></span>
+        <div>
+          <p class="idcard-name">{p.name}</p>
+          <p class="idcard-en">{p.role}</p>
+        </div>
+      </div>
+      <dl class="getinfo">
+        {p.email && <div><dt>Email：</dt><dd><a href={`mailto:${p.email}`}>{p.email}</a></dd></div>}
+        {p.location && <div><dt>地點：</dt><dd>{p.location}</dd></div>}
+        <div><dt>回覆：</dt><dd>1–2 天</dd></div>
+      </dl>
+      {p.email && <div class="btns"><button class="btn btn-sm" type="button" data-copy={p.email}>複製 Email</button></div>}
+    </Win>
+    {p.links.length > 0 && (
+      <Win id="w-links" title="其他地方" icon="folder" class="w-links" label="社群連結" info={`${p.links.length} 個替身`}>
+        <ul class="aliases">
+          {p.links.map((l) => (
+            <li><a href={u(l.url)} target="_blank" rel="noopener"><Icon kind="link" size={32} /><span><b>{l.label}</b><small>{l.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</small></span></a></li>
+          ))}
+        </ul>
+      </Win>
+    )}
+  </div>
+</Layout>

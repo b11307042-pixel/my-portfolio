@@ -1,0 +1,259 @@
+---
+import Layout from '../Layout.astro';
+import Device from '../components/Device.astro';
+import IdCard from '../components/IdCard.astro';
+import Icon from '../components/Icon.astro';
+import Cta from '../components/Cta.astro';
+import Phrases from '../components/Phrases.astro';
+import { getProfile, getProjects, getExperience, getPosts, u, img, fmtDate, readMinutes } from '../../../lib/site';
+
+const p = (await getProfile()).data;
+const projects = await getProjects();
+const featured = (projects.filter((x) => x.data.featured).length ? projects.filter((x) => x.data.featured) : projects).slice(0, 4);
+const exp = await getExperience();
+const posts = (await getPosts()).slice(0, 2);
+const photo = img(p.avatar);
+const side = img(p.photos[0]);
+const skillCount = p.skills.reduce((n, s) => n + s.items.length, 0);
+---
+<Layout page="home">
+  <section class="hero">
+    <div class="wrap hero-copy">
+      <p class="eyebrow">{p.name}{p.nameEn && <span class="dim"> · {p.nameEn}</span>}</p>
+      <h1 class="display hero-title"><Phrases text={p.tagline} /></h1>
+      <p class="lede hero-lede">{p.intro}</p>
+      <div class="btns center hero-btns">
+        <a class="pill" href={u('/projects/')}>看看作品</a>
+        <a class="tlink" href={u('/about/')}>認識我 <Icon name="chev" /></a>
+      </div>
+    </div>
+    <div class="stage-pin">
+      <div class="stage-in">
+        <div class:list={['stage', { 'is-photo': photo }]}>
+          {photo ? <img class="settle" src={photo} alt={p.name} loading="eager" fetchpriority="high" /> : <IdCard />}
+          {photo && (
+            <div class="stage-cap">
+              <span class="cap-name">{p.name}{p.nameEn && <em> {p.nameEn}</em>}</span>
+              {p.status && <span class="cap-status"><i class="live" aria-hidden="true"></i>{p.status}</span>}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {p.highlights.length > 0 && (
+    <section class="stats wrap" aria-label="數字">
+      <p class="kicker center" data-rise>用數字說</p>
+      <div class:list={['stats-row', `n${Math.min(p.highlights.length, 4)}`]}>
+        {p.highlights.map((h) => (
+          <div class="stat" data-rise>
+            <strong data-count>{h.value}</strong>
+            <span>{h.label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="bento-sec wrap" aria-labelledby="bento-h">
+    <header class="sec-head" data-rise>
+      <h2 id="bento-h" class="h2">一眼看懂我。</h2>
+      <a class="tlink" href={u('/about/')}>完整介紹 <Icon name="chev" /></a>
+    </header>
+    <div class="bento">
+      <a class:list={['card b-about', { 'has-img': side }]} href={u('/about/')} data-rise>
+        {side && <img src={side} alt="" loading="lazy" />}
+        <div class="b-about-tx">
+          <p class="kicker">關於</p>
+          <p class="b-big">{p.role}</p>
+          <span class="tlink">讀完整自介 <Icon name="chev" /></span>
+        </div>
+      </a>
+      <div class="card b-quote dark" data-rise>
+        <p class="kicker">信念</p>
+        <p class="b-quote-tx">{p.quote || p.tagline}</p>
+      </div>
+      <div class="card b-now" data-rise>
+        <p class="kicker">現在</p>
+        <p class="b-now-tx"><i class="live" aria-hidden="true"></i>{p.status || p.role}</p>
+        {p.location && <p class="b-loc"><Icon name="pin" />{p.location}</p>}
+      </div>
+      {p.skills.length > 0 && (
+        <div class:list={['card b-skills', { full: p.interests.length === 0 }]} data-rise>
+          <div class="b-skills-head">
+            <p class="kicker">工具箱</p>
+            <p class="b-num"><strong data-count>{skillCount}</strong><span>項技能與工具</span></p>
+          </div>
+          <div class="b-skill-groups">
+            {p.skills.map((s) => (
+              <div>
+                <p class="b-g">{s.group}</p>
+                <p class="chips">{s.items.map((i) => <span>{i}</span>)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {p.interests.length > 0 && (
+        <div class="card b-int" data-rise>
+          <p class="kicker">下課之後</p>
+          <ul>{p.interests.map((t) => {
+            const [a, b] = t.split(/[：:]/);
+            return <li><strong>{a}</strong>{b && <span>{b}</span>}</li>;
+          })}</ul>
+        </div>
+      )}
+      {p.traits.map((t, i) => (
+        <div class="card b-trait" data-rise>
+          <p class="b-trait-n">{String(i + 1).padStart(2, '0')}</p>
+          <p class="b-trait-t">{t.title}</p>
+          <p class="b-trait-x">{t.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {featured.length > 0 && (
+    <section class="feat" aria-labelledby="feat-h">
+      <div class="wrap">
+        <header class="sec-head" data-rise>
+          <h2 id="feat-h" class="h2">精選作品。</h2>
+          <a class="tlink" href={u('/projects/')}>全部 {projects.length} 個作品 <Icon name="chev" /></a>
+        </header>
+        <div class="feat-grid">
+          <div class="feat-steps">
+            {featured.map((x, i) => (
+              <article class="feat-step" data-step={i}>
+                <div class="feat-dev-m">
+                  <Device src={x.data.cover} alt={x.data.title} kind="mac" fb={{ title: x.data.title, summary: x.data.summary, tags: x.data.tags, results: x.data.results, n: i + 1 }} />
+                </div>
+                <p class="feat-n">{String(i + 1).padStart(2, '0')} <span>/ {String(featured.length).padStart(2, '0')}</span></p>
+                <h3 class="feat-t">{x.data.title}</h3>
+                <p class="feat-s">{x.data.summary}</p>
+                {x.data.results.length > 0 && (
+                  <ul class="feat-r">{x.data.results.slice(0, 2).map((r) => <li><Icon name="check" />{r}</li>)}</ul>
+                )}
+                <div class="feat-foot">
+                  {x.data.tags.length > 0 && <p class="chips">{x.data.tags.map((t) => <span>{t}</span>)}</p>}
+                  <a class="tlink" href={u(`/projects/${x.id}/`)}>看完整個案 <Icon name="chev" /></a>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div class="feat-sticky" aria-hidden="true">
+            <div class="feat-stack">
+              {featured.map((x, i) => (
+                <div class:list={['feat-slide', { on: i === 0 }]} data-slide={i}>
+                  <Device src={x.data.cover} alt="" kind="mac" fb={{ title: x.data.title, summary: x.data.summary, tags: x.data.tags, results: x.data.results, n: i + 1 }} />
+                </div>
+              ))}
+            </div>
+            {featured.length > 1 && (
+              <div class="feat-dots">{featured.map((_, i) => <i class:list={{ on: i === 0 }} data-dot={i}></i>)}</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+
+  {exp.length > 0 && (
+    <section class="rail-sec" aria-labelledby="exp-h">
+      <div class="wrap">
+        <header class="sec-head" data-rise>
+          <h2 id="exp-h" class="h2">一路走來。</h2>
+          <div class="rail-ctl">
+            <a class="tlink" href={u('/experience/')}>所有經歷 <Icon name="chev" /></a>
+            <button type="button" class="rbtn" data-rail="-1" aria-label="上一張"><Icon name="back" /></button>
+            <button type="button" class="rbtn" data-rail="1" aria-label="下一張"><Icon name="chev" /></button>
+          </div>
+        </header>
+      </div>
+      <div class="rail" data-railbox>
+        {exp.map((e) => (
+          <article class="card rail-card" data-rise>
+            <p class="rail-top">{e.data.type && <span class="tag">{e.data.type}</span>}<span class="rail-date">{e.data.period}</span></p>
+            <h3 class="rail-t">{e.data.title}</h3>
+            <p class="rail-org">{e.data.org}</p>
+            <p class="rail-s">{e.data.summary}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {posts.length > 0 && (
+    <section class="wrap posts-sec" aria-labelledby="w-h">
+      <header class="sec-head" data-rise>
+        <h2 id="w-h" class="h2">最近在想。</h2>
+        <a class="tlink" href={u('/blog/')}>所有文章 <Icon name="chev" /></a>
+      </header>
+      <div class="post-cards">
+        {posts.map((x) => (
+          <a class="card post-card" href={u(`/blog/${x.id}/`)} data-rise>
+            <p class="pc-meta"><time datetime={x.data.date.toISOString()}>{fmtDate(x.data.date)}</time><span>{readMinutes(x.body)} 分鐘</span></p>
+            <h3 class="pc-t">{x.data.title}</h3>
+            <p class="pc-s">{x.data.summary}</p>
+            <span class="tlink">閱讀 <Icon name="chev" /></span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <Cta />
+</Layout>
+
+<script>
+  import { gsap, ScrollTrigger, SplitText, onReady } from '../../../lib/motion';
+
+  // 經歷橫向捲動的左右鍵（不靠動畫，截圖時也正常）
+  const rail = document.querySelector<HTMLElement>('[data-railbox]');
+  document.querySelectorAll<HTMLButtonElement>('[data-rail]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const card = rail?.querySelector<HTMLElement>('.rail-card');
+      rail?.scrollBy({ left: Number(b.dataset.rail) * ((card?.offsetWidth || 320) + 20), behavior: 'smooth' });
+    }),
+  );
+
+  // 精選作品：左邊文字捲到哪一個，右邊筆電就換哪一張
+  const slides = document.querySelectorAll<HTMLElement>('[data-slide]');
+  const dots = document.querySelectorAll<HTMLElement>('[data-dot]');
+  const show = (i: number) => {
+    slides.forEach((s, k) => s.classList.toggle('on', k === i));
+    dots.forEach((d, k) => d.classList.toggle('on', k === i));
+  };
+  document.querySelectorAll<HTMLElement>('[data-step]').forEach((step) => {
+    ScrollTrigger.create({
+      trigger: step, start: 'top 55%', end: 'bottom 55%',
+      onToggle: (self) => self.isActive && show(Number(step.dataset.step)),
+    });
+  });
+
+  onReady(() => {
+    // 開場：標題一個字一個字從模糊浮上來
+    const split = new SplitText('.hero-title', { type: 'chars' });
+    const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+    tl.from('.hero .eyebrow', { y: 18, opacity: 0, duration: 1 })
+      .from(split.chars, { y: 36, opacity: 0, filter: 'blur(12px)', duration: 1.3, stagger: 0.022, onComplete: () => split.revert() }, 0.08)
+      .from('.hero-lede, .hero-btns', { y: 22, opacity: 0, duration: 1.1, stagger: 0.1 }, 0.45)
+      .from('.stage-in', { y: 120, opacity: 0, duration: 1.6, ease: 'expo.out' }, 0.5);
+
+    // 主視覺：捲動時從小卡放大到滿版、照片慢慢定位（桌機釘住）
+    const mm = gsap.matchMedia();
+    mm.add('(min-width: 900px)', () => {
+      const t = gsap.timeline({ scrollTrigger: { trigger: '.stage-pin', start: 'center center', end: '+=90%', pin: true, scrub: 0.8 } });
+      t.from('.stage', { scale: 0.62, borderRadius: 56, ease: 'power2.inOut' }, 0)
+        .from('.stage .settle', { scale: 1.32, ease: 'power2.out' }, 0)
+        .from('.stage-cap, .idc-float', { opacity: 0, y: 30, stagger: 0.1, ease: 'power2.out', duration: 0.4 }, 0.55);
+      gsap.to('.hero-copy', { opacity: 0.15, y: -60, ease: 'none', scrollTrigger: { trigger: '.stage-pin', start: 'top 70%', end: 'center center', scrub: true } });
+    });
+    mm.add('(max-width: 899px)', () => {
+      gsap.from('.stage', { scale: 0.9, borderRadius: 40, ease: 'none', scrollTrigger: { trigger: '.stage', start: 'top bottom', end: 'center center', scrub: 0.6 } });
+    });
+
+    // 精選作品的筆電：換張時往上淡入
+    gsap.from('.feat-sticky', { y: 80, opacity: 0, duration: 1.4, ease: 'expo.out', scrollTrigger: { trigger: '.feat', start: 'top 70%' } });
+  });
+</script>

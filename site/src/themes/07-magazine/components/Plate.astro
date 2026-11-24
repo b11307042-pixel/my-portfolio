@@ -1,0 +1,22 @@
+---
+// 圖版：細框、圖說（圖一、圖二…）、捲到時從中間打開、照片在框裡視差移動
+import { img } from '../../../lib/site';
+import { dims } from './dims';
+import { zh } from './issue';
+interface Props { src: string; alt?: string; ratio?: string; caption?: string; num?: number; hero?: boolean; parallax?: boolean; pos?: string; class?: string; credit?: string }
+const { src, alt = '', ratio, caption, num, hero = false, parallax = true, pos, class: cls, credit } = Astro.props;
+const d = dims(src);
+const ar = ratio ?? (d ? `${d.w} / ${d.h}` : '4 / 3');
+---
+<figure class:list={['plate', cls]}>
+  <div class="plate-frame" style={`aspect-ratio:${ar}`} data-plate={hero ? undefined : ''} data-plate-hero={hero ? '' : undefined} data-parallax={parallax ? '' : undefined}>
+    <img src={img(src)} alt={alt} width={d?.w} height={d?.h} loading={hero ? 'eager' : 'lazy'} decoding="async" style={pos ? `object-position:${pos}` : undefined} />
+  </div>
+  {(caption || num) && (
+    <figcaption class="cap">
+      {num && <span class="cap-n">圖{zh(num)}</span>}
+      <span>{caption}</span>
+      {credit && <span class="cap-credit it">{credit}</span>}
+    </figcaption>
+  )}
+</figure>

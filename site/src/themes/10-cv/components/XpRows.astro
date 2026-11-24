@@ -1,0 +1,17 @@
+---
+interface Props { list: any[]; full?: boolean }
+const { list, full = true } = Astro.props;
+---
+<ol class="xrows">
+  {list.map((e) => (
+    <li class="xrow" data-in>
+      <p class="d mono">{e.data.period}</p>
+      <div class="xb">
+        <h3 class="xt">{e.data.title}<span class="xorg">{e.data.org}</span></h3>
+        {e.data.type && <span class="badge mono">{e.data.type}</span>}
+        <p class="xs">{e.data.summary}</p>
+        {full && e.data.points.length > 0 && <ul class="xp">{e.data.points.map((pt: string) => <li>{pt}</li>)}</ul>}
+      </div>
+    </li>
+  ))}
+</ol>

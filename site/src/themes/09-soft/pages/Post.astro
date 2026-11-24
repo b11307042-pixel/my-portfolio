@@ -1,0 +1,27 @@
+---
+import Layout from '../Layout.astro';
+import { render, type CollectionEntry } from 'astro:content';
+import { u, img, fmtDate, readMinutes, getProfile } from '../../../lib/site';
+
+interface Props { entry: CollectionEntry<'posts'>; prev?: CollectionEntry<'posts'>; next?: CollectionEntry<'posts'> }
+const { entry, prev, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const p = (await getProfile()).data;
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="post">
+  <div class="progress" aria-hidden="true"><i data-progress></i></div>
+  <header class="post-head wrap-read">
+    <a class="pill-link" href={u('/blog/')} data-in data-squish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" /></svg>所有文章</a>
+    {d.tags.length > 0 && <p class="pills post-tags" data-in>{d.tags.map((t) => <span class="pill">{t}</span>)}</p>}
+    <h1 class="post-h1" data-in>{d.title}</h1>
+    <p class="post-lead" data-in>{d.summary}</p>
+    <p class="post-by" data-in><span class="by-dot" aria-hidden="true"></span>{p.name}<span>·</span>{fmtDate(d.date)}<span>·</span>{readMinutes(entry.body)} 分鐘讀完</p>
+  </header>
+  {d.cover && <div class="wrap-read post-cover"><img src={img(d.cover)} alt="" /></div>}
+  <article class="wrap-read"><div class="clay prose-card prose" data-rise><Content /></div></article>
+  <nav class="wrap-read post-nav" aria-label="其他文章">
+    {prev ? <a class="pn clay" href={u(`/blog/${prev.id}/`)} data-tilt><span class="pn-k">較新的一篇</span><span class="pn-t">{prev.data.title}</span></a> : <span class="pn pn-empty"><span class="pn-k">這是最新的一篇</span></span>}
+    {next ? <a class="pn pn-r clay" href={u(`/blog/${next.id}/`)} data-tilt><span class="pn-k">較早的一篇</span><span class="pn-t">{next.data.title}</span></a> : <a class="pn pn-r clay" href={u('/blog/')} data-tilt><span class="pn-k">讀完了</span><span class="pn-t">回到文章列表</span></a>}
+  </nav>
+</Layout>

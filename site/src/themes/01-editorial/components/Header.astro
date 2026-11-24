@@ -1,0 +1,41 @@
+---
+import { getProfile, navItems, u } from '../../../lib/site';
+const p = (await getProfile()).data;
+const items = await navItems();
+const here = Astro.url.pathname;
+const active = (href: string) => (href === '/' ? here === u('/') : here.startsWith(u(href)));
+const n = (i: number) => String(i + 1).padStart(2, '0');
+---
+<header class="hd">
+  <div class="hd-in">
+    <a class="hd-brand" href={u('/')} aria-label={`${p.name}，回首頁`}>
+      <span class="sq" aria-hidden="true"></span>
+      <span class="hd-name">{p.name}</span>
+      {p.nameEn && <span class="hd-en">{p.nameEn}</span>}
+    </a>
+    <nav class="hd-nav" aria-label="主要導覽">
+      <ol>
+        {items.map((it, i) => (
+          <li><a href={u(it.href)} aria-current={active(it.href) ? 'page' : undefined}><span class="n">{n(i)}</span>{it.label}</a></li>
+        ))}
+      </ol>
+    </nav>
+    <p class="hd-status">{p.status ? <><span class="dot" aria-hidden="true"></span>{p.status}</> : p.role}</p>
+    <button class="hd-menu" type="button" data-menu aria-expanded="false" aria-controls="menu">
+      <span class="hd-menu-l">Menu</span><span class="hd-menu-i" aria-hidden="true"><i></i><i></i></span>
+    </button>
+  </div>
+</header>
+<div class="menu" id="menu">
+  <nav aria-label="手機導覽">
+    <ol>
+      {items.map((it, i) => (
+        <li><a href={u(it.href)} aria-current={active(it.href) ? 'page' : undefined}><span class="n">{n(i)}</span><span class="l">{it.label}</span><span class="en">{it.en}</span></a></li>
+      ))}
+    </ol>
+  </nav>
+  <div class="menu-foot">
+    {p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}
+    {p.location && <span>{p.location}</span>}
+  </div>
+</div>

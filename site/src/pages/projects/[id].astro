@@ -1,0 +1,12 @@
+---
+import Page from '@theme/pages/Project.astro';
+import { getProjects } from '../../lib/site';
+export async function getStaticPaths() {
+  const all = await getProjects();
+  return all.map((entry, i) => ({
+    params: { id: entry.id },
+    props: { entry, index: i, total: all.length, prev: all[i - 1], next: all[i + 1] ?? (all.length > 1 ? all[0] : undefined) },
+  }));
+}
+---
+<Page {...Astro.props} />

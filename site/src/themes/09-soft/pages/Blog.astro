@@ -1,0 +1,37 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import { getPosts, u, img, fmtDate, readMinutes } from '../../../lib/site';
+
+const posts = await getPosts();
+const tones = ['lav', 'peach', 'mint', 'butter', 'sky'];
+---
+<Layout title="文章" page="blog">
+  <PageHead kicker="Writing" title="寫下來的筆記" lead="做作品、實習、上課時想通的事。" count={posts.length} countLabel="篇文章" tone="butter" />
+  <section class="wrap-mid">
+    {posts.length > 0 ? (
+      <ol class="post-list">
+        {posts.map((x, i) => (
+          <li data-rise>
+            <a class={`post-row clay t-${tones[i % tones.length]}`} href={u(`/blog/${x.id}/`)} data-tilt>
+              {x.data.cover ? (
+                <span class="post-thumb"><img src={img(x.data.cover)} alt="" loading="lazy" /></span>
+              ) : (
+                <span class="post-cal" aria-hidden="true"><b>{x.data.date.getDate()}</b><span>{x.data.date.getMonth() + 1} 月</span></span>
+              )}
+              <span class="post-main">
+                <span class="post-meta"><span>{fmtDate(x.data.date)}</span><span>{readMinutes(x.body)} 分鐘</span></span>
+                <span class="post-title">{x.data.title}</span>
+                <span class="post-sum">{x.data.summary}</span>
+                {x.data.tags.length > 0 && <span class="pills">{x.data.tags.map((t) => <span class="pill">{t}</span>)}</span>}
+              </span>
+              <span class="post-go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" /></svg></span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <div class="empty clay"><strong>第一篇正在寫</strong><p>寫好會放在這裡。</p></div>
+    )}
+  </section>
+</Layout>

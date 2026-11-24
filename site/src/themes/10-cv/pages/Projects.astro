@@ -1,0 +1,23 @@
+---
+import Layout from '../Layout.astro';
+import WorkRows from '../components/WorkRows.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { getProjects } from '../../../lib/site';
+const list = await getProjects();
+const tags = [...new Set(list.flatMap((x) => x.data.tags))];
+---
+<Layout title="作品" page="projects">
+  <header class="ph">
+    <Crumbs items={[{ label: '作品' }]} />
+    <h1 class="ph-t" data-in>作品</h1>
+    <p class="ph-s" data-in>{list.length} 個專案。滑過或用 Tab 選到一列，可以先看{list.some((x) => x.data.cover) ? '截圖' : '成果'}。</p>
+    {tags.length > 0 && <p class="ph-tags mono" data-in>{tags.slice(0, 12).map((t) => <span>{t}</span>)}</p>}
+  </header>
+  <WorkRows list={list} detail />
+</Layout>
+<script>
+  // 一次只展開一列：滑過、聚焦就換那一列
+  const rows = document.querySelectorAll<HTMLElement>('.wrows.detail .wrow');
+  const openRow = (r: HTMLElement) => rows.forEach((x) => x.classList.toggle('open', x === r));
+  rows.forEach((r) => { r.addEventListener('mouseenter', () => openRow(r)); r.addEventListener('focus', () => openRow(r)); });
+</script>

@@ -1,0 +1,28 @@
+---
+// 首頁作品：大標＋編號，下面整張圖
+import { u } from '../../../lib/site';
+import Media from './Media.astro';
+import Arrow from './Arrow.astro';
+interface Props { project: any; index: number }
+const { project, index } = Astro.props;
+const d = project.data;
+const year = (d.period?.match(/\d{4}/) || [''])[0];
+---
+<article class="work">
+  <a class="work-a" href={u(`/projects/${project.id}/`)} data-view>
+    <div class="work-head">
+      <span class="work-n mono">({String(index + 1).padStart(2, '0')})</span>
+      <h3 class="work-title" data-split>{d.title}</h3>
+      <span class="work-go"><Arrow dir="ne" /></span>
+    </div>
+    <Media project={project} index={index} ratio={d.cover ? "16 / 9" : "21 / 9"} />
+    <div class="work-meta">
+      <p class="work-sum">{d.summary}</p>
+      <dl class="work-dl mono">
+        {d.role && <div><dt>Role</dt><dd>{d.role}</dd></div>}
+        {year && <div><dt>Year</dt><dd>{year}</dd></div>}
+      </dl>
+      <ul class="pills">{d.tags.map((t: string) => <li>{t}</li>)}</ul>
+    </div>
+  </a>
+</article>

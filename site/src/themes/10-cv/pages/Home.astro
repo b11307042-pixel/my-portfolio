@@ -1,0 +1,68 @@
+---
+import Layout from '../Layout.astro';
+import Head from '../components/Head.astro';
+import Sec from '../components/Sec.astro';
+import WorkRows from '../components/WorkRows.astro';
+import XpRows from '../components/XpRows.astro';
+import { getProfile, getProjects, getExperience, getPosts, u, fmtDate } from '../../../lib/site';
+const p = (await getProfile()).data;
+const projects = await getProjects();
+const exp = await getExperience();
+const posts = (await getPosts()).slice(0, 4);
+const host = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+---
+<Layout page="home">
+  <Head />
+
+  <Sec label="簡介" id="about" more={u('/about/')} moreLabel="完整自介">
+    <p class="lead" data-in>{p.tagline}</p>
+    <p class="body" data-in>{p.intro}</p>
+  </Sec>
+
+  {p.highlights.length > 0 && (
+    <section class="stats" aria-label="數字" data-in>
+      {p.highlights.map((h) => <div><strong class="mono">{h.value}</strong><span>{h.label}</span></div>)}
+    </section>
+  )}
+
+  {projects.length > 0 && (
+    <Sec label="作品" id="work" more={u('/projects/')} moreLabel={`全部 ${projects.length}`}>
+      <WorkRows list={projects.slice(0, 5)} />
+    </Sec>
+  )}
+
+  {exp.length > 0 && (
+    <Sec label="經歷" id="exp" more={u('/experience/')}>
+      <XpRows list={exp} />
+    </Sec>
+  )}
+
+  {p.skills.length > 0 && (
+    <Sec label="技能" id="skills">
+      <dl class="kv">
+        {p.skills.map((s) => <div data-in><dt>{s.group}</dt><dd>{s.items.map((i) => <span>{i}</span>)}</dd></div>)}
+      </dl>
+    </Sec>
+  )}
+
+  {posts.length > 0 && (
+    <Sec label="文章" id="writing" more={u('/blog/')} class="no-print">
+      <ol class="prows">
+        {posts.map((x) => (
+          <li data-in><a href={u(`/blog/${x.id}/`)}><span class="d mono">{fmtDate(x.data.date)}</span><span class="pt">{x.data.title}</span><span class="arr" aria-hidden="true">→</span></a></li>
+        ))}
+      </ol>
+    </Sec>
+  )}
+
+  <Sec label="聯絡" id="contact">
+    <dl class="kv links">
+      {p.email && (
+        <div data-in><dt>Email</dt><dd><a href={`mailto:${p.email}`}>{p.email}</a><button type="button" class="mini no-print" data-copy={p.email}><span data-copy-label>複製</span></button></dd></div>
+      )}
+      {p.links.map((l) => (
+        <div data-in><dt>{l.label}</dt><dd><a href={u(l.url)} target="_blank" rel="noopener">{host(l.url)}<span class="ext" aria-hidden="true">↗</span></a></dd></div>
+      ))}
+    </dl>
+  </Sec>
+</Layout>

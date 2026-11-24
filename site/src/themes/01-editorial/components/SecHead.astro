@@ -1,0 +1,15 @@
+---
+// 區塊標題：(01) English 中文 ………… 數量／連結
+import { u } from '../../../lib/site';
+interface Props { num: string; en: string; zh: string; count?: string; href?: string; link?: string; id?: string }
+const { num, en, zh, count, href, link, id } = Astro.props;
+---
+<div class="sh" id={id}>
+  <span class="rule" data-rule></span>
+  <div class="sh-in">
+    <span class="sh-n" aria-hidden="true">{num}</span>
+    <h2 class="sh-t"><span class="en">{en}</span><span class="zh">{zh}</span></h2>
+    {count && <span class="mono sh-c">{count}</span>}
+    {href && <a class="mono sh-a ul" href={u(href)}>{link}<span aria-hidden="true"> →</span></a>}
+  </div>
+</div>

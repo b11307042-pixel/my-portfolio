@@ -1,0 +1,55 @@
+---
+import Layout from '../Layout.astro';
+import Win from '../components/Win.astro';
+import Icon from '../components/Icon.astro';
+import { getProjects, u, img } from '../../../lib/site';
+import { n2 } from '../lib';
+const projects = await getProjects();
+---
+<Layout title="作品" stage="page">
+  <Win id="w-main" title="Projects" icon="folder" class="w-full" main label="作品資料夾" info={`${projects.length} 個項目`} infoR="依順序排列">
+    <header class="doc-head doc-head-row">
+      <div>
+        <p class="kicker">Projects</p>
+        <h1 class="doc-title">作品</h1>
+        <p class="doc-lead">每一件都寫下背景、我做了什麼，以及最後的成果。</p>
+      </div>
+      {projects.length > 1 && (
+        <div class="seg" role="group" aria-label="顯示方式" data-viewbox>
+          <button type="button" class="seg-b" data-view="icons" aria-pressed="true">圖示</button>
+          <button type="button" class="seg-b" data-view="list" aria-pressed="false">列表</button>
+        </div>
+      )}
+    </header>
+    {projects.length > 0 ? (
+      <ol class="pgrid" data-views="icons">
+        {projects.map((x, i) => {
+          const cover = img(x.data.cover);
+          return (
+            <li>
+              <a class="pcard" href={u(`/projects/${x.id}/`)}>
+                <span class:list={['pcard-thumb', !cover && 'is-doc']}>
+                  {cover ? <img src={cover} alt="" loading={i < 3 ? 'eager' : 'lazy'} decoding="async" /> : (
+                    <span class="doc-prev" aria-hidden="true">
+                      <Icon kind="doc" size={48} />
+                      <span class="doc-prev-t">{x.data.title}</span>
+                      <span>{x.data.summary}</span>
+                    </span>
+                  )}
+                </span>
+                <span class="pcard-ic"><Icon kind={cover ? 'image' : 'doc'} size={16} /></span>
+                <span class="pcard-n">{n2(i + 1)}</span>
+                <span class="pcard-t">{x.data.title}</span>
+                <span class="pcard-s">{x.data.summary}</span>
+                <span class="pcard-k">{x.data.tags.slice(0, 3).join('・')}</span>
+                <span class="pcard-d">{x.data.period}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    ) : (
+      <div class="empty"><Icon kind="folder" size={48} /><p>這個資料夾是空的。把作品寫進 src/content/projects/ 就會出現在這裡。</p></div>
+    )}
+  </Win>
+</Layout>

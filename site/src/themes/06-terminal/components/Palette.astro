@@ -1,0 +1,61 @@
+---
+// ⌘K／Ctrl+K「尋找」對話框：頁面、作品、文章、動作。↑↓ 選、Enter 打開、Esc 關閉
+import { getProfile, getProjects, getPosts, navItems, u } from '../../../lib/site';
+import Icon from './Icon.astro';
+import { pageIcon } from '../lib';
+import type { IconKind } from '../lib';
+const p = (await getProfile()).data;
+const nav = await navItems();
+const projects = await getProjects();
+const posts = (await getPosts()).slice(0, 8);
+type Cmd = { id: string; label: string; hint?: string; href?: string; copy?: string; ext?: boolean; icon: IconKind; search: string };
+const g: { name: string; items: Cmd[] }[] = [
+  { name: '頁面', items: nav.map((i, n) => ({ id: `pal-nav-${n}`, label: i.label, hint: (pageIcon[i.href] || { file: i.en }).file, href: u(i.href), icon: (pageIcon[i.href] || { kind: 'doc' }).kind, search: `${i.label} ${i.en} ${i.href}`.toLowerCase() })) },
+  { name: '作品', items: projects.map((x, n) => ({ id: `pal-prj-${n}`, label: x.data.title, hint: x.data.period, href: u(`/projects/${x.id}/`), icon: 'doc' as IconKind, search: `${x.data.title} ${x.id} ${x.data.tags.join(' ')}`.toLowerCase() })) },
+  { name: '文章', items: posts.map((x, n) => ({ id: `pal-post-${n}`, label: x.data.title, hint: x.data.tags[0], href: u(`/blog/${x.id}/`), icon: 'text' as IconKind, search: `${x.data.title} ${x.data.tags.join(' ')}`.toLowerCase() })) },
+  {
+    name: '動作', items: [
+      ...(p.email ? [{ id: 'pal-copy', label: '複製 Email', hint: p.email, copy: p.email, icon: 'mail' as IconKind, search: `copy email 複製 ${p.email}` }, { id: 'pal-mail', label: '寫信給我', hint: 'mailto', href: `mailto:${p.email}`, icon: 'mail' as IconKind, search: 'mail email 寫信 寄信' }] : []),
+      ...(p.resume ? [{ id: 'pal-cv', label: '打開履歷', hint: 'PDF', href: u(p.resume), ext: true, icon: 'cv' as IconKind, search: 'resume cv 履歷' }] : []),
+      ...p.links.map((l, n) => ({ id: `pal-lnk-${n}`, label: `打開 ${l.label}`, hint: '外部連結', href: u(l.url), ext: true, icon: 'link' as IconKind, search: `${l.label} link 連結`.toLowerCase() })),
+    ],
+  },
+].filter((x) => x.items.length);
+---
+<div class="palette" data-palette hidden>
+  <div class="pal-scrim"></div>
+  <div class="pal-box win is-active is-plain" role="dialog" aria-modal="true" aria-labelledby="pal-t">
+    <div class="win-bar">
+      <button class="wb wb-close" type="button" data-pal-close aria-label="關閉尋找"></button>
+      <span class="win-title" id="pal-t"><Icon kind="find" size={16} /><span class="win-tt">尋找…</span></span>
+    </div>
+    <div class="win-body">
+      <div class="pal-head">
+        <Icon kind="find" size={32} />
+        <label for="pal-q">輸入頁面、作品或文章的名稱，按 Enter 打開。</label>
+      </div>
+      <input id="pal-q" class="field-in" type="text" placeholder="例如：作品、聯絡、Email" role="combobox" aria-expanded="true" aria-controls="pal-list" aria-autocomplete="list" autocomplete="off" spellcheck="false" />
+      <div class="pal-list" id="pal-list" role="listbox" aria-label="結果">
+        {g.map((grp) => (
+          <div class="pal-group" data-group role="group" aria-label={grp.name}>
+            <p class="pal-gname" aria-hidden="true">{grp.name}</p>
+            {grp.items.map((c) => (
+              <div class="pal-item" role="option" id={c.id} aria-selected="false" data-cmd data-search={c.search}
+                data-href={c.href} data-copy={c.copy} data-ext={c.ext ? '1' : undefined}>
+                <Icon kind={c.icon} size={16} />
+                <span class="pal-label">{c.label}</span>
+                {c.hint && <span class="pal-hint">{c.hint}</span>}
+              </div>
+            ))}
+          </div>
+        ))}
+        <p class="pal-empty" data-empty hidden>找不到符合的項目。</p>
+      </div>
+      <div class="pal-btns">
+        <span class="pal-keys" aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> 選擇　<kbd>esc</kbd> 關閉</span>
+        <button class="btn" type="button" data-pal-close>取消</button>
+        <button class="btn btn-default" type="button" data-pal-go>打開</button>
+      </div>
+    </div>
+  </div>
+</div>

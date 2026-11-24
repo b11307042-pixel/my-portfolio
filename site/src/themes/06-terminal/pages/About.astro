@@ -1,0 +1,98 @@
+---
+import Layout from '../Layout.astro';
+import Win from '../components/Win.astro';
+import Icon from '../components/Icon.astro';
+import { getProfile, img, u, initials } from '../../../lib/site';
+import { render } from 'astro:content';
+import { fileName, n2 } from '../lib';
+
+const profile = await getProfile();
+const p = profile.data;
+const { Content } = await render(profile);
+const photos = [p.avatar, ...p.photos].filter((s): s is string => !!s).filter((v, i, a) => a.indexOf(v) === i).map((s) => ({ src: img(s)!, name: fileName(s) }));
+const info: [string, string | undefined][] = [['名字', p.name], ['英文', p.nameEn], ['身份', p.role], ['地點', p.location], ['現在', p.status]];
+---
+<Layout title="關於" stage="page">
+  <Win id="w-main" title="About Me.txt" icon="text" class="w-main" main label="關於我的文件" info={`${p.name}．自我介紹`} infoR={p.location}>
+    <header class="doc-head">
+      <p class="kicker">About</p>
+      <h1 class="doc-title">關於{p.name}</h1>
+      <p class="doc-lead">{p.tagline}</p>
+    </header>
+    <div class="prose"><Content /></div>
+    {p.traits.length > 0 && (
+      <section class="doc-sec" aria-labelledby="h-traits">
+        <h2 id="h-traits" class="doc-h2">我怎麼做事</h2>
+        <ol class="traits">
+          {p.traits.map((t, i) => (
+            <li class="trait"><span class="trait-n">{n2(i + 1)}</span><h3>{t.title}</h3><p>{t.text}</p></li>
+          ))}
+        </ol>
+      </section>
+    )}
+  </Win>
+
+  <div class="side">
+    {photos.length > 0 ? (
+      <Win id="w-photo" title={photos[0].name} icon="image" class="w-viewer" plain label="照片檢視器" infoR={`${photos.length} 張`} info="預覽">
+        <div class="viewer" data-viewer>
+          <div class="viewer-stage"><img data-viewer-img src={photos[0].src} alt={`${p.name} 的照片`} decoding="async" /></div>
+          {photos.length > 1 && (
+            <div class="thumbs">
+              {photos.map((ph, i) => (
+                <button type="button" data-thumb={ph.src} data-name={ph.name} data-alt={`${p.name} 的照片 ${i + 1}`} aria-pressed={i === 0 ? 'true' : 'false'} aria-label={`看第 ${i + 1} 張照片`}>
+                  <img src={ph.src} alt="" loading="lazy" decoding="async" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </Win>
+    ) : (
+      <Win id="w-card" title="名片" icon="app" class="w-card" plain label="名片">
+        <div class="idcard">
+          <span class="idcard-ic" aria-hidden="true"><Icon kind="app" size={48} /><b>{initials(p.name, p.nameEn)}</b></span>
+          <p class="idcard-name">{p.name}</p>
+          {p.nameEn && <p class="idcard-en">{p.nameEn}</p>}
+        </div>
+      </Win>
+    )}
+
+    <Win id="w-info" title={`${p.name} 的簡介`} icon="doc" class="w-info" plain label="個人資訊">
+      <dl class="getinfo">
+        {info.filter(([, v]) => v).map(([k, v]) => <div><dt>{k}：</dt><dd>{v}</dd></div>)}
+        {p.email && <div><dt>Email：</dt><dd><a href={`mailto:${p.email}`}>{p.email}</a></dd></div>}
+        {p.links.length > 0 && <div><dt>連結：</dt><dd class="getinfo-links">{p.links.map((l) => <a href={u(l.url)} target="_blank" rel="noopener">{l.label}</a>)}</dd></div>}
+      </dl>
+    </Win>
+
+    {p.quote && (
+      <aside class="sticky" aria-label="座右銘">
+        <p>{p.quote}</p>
+      </aside>
+    )}
+  </div>
+
+  {p.skills.length > 0 && (
+    <Win id="w-skills" title="控制台：技能" icon="app" class="w-wide" plain label="技能與工具" info={`${p.skills.length} 組`} infoR={`${p.skills.reduce((a, g) => a + g.items.length, 0)} 項`}>
+      <div class="groups">
+        {p.skills.map((g) => (
+          <fieldset class="group">
+            <legend>{g.group}</legend>
+            <ul class="checks">{g.items.map((s) => <li><span class="chk" aria-hidden="true"></span>{s}</li>)}</ul>
+          </fieldset>
+        ))}
+      </div>
+    </Win>
+  )}
+
+  {p.interests.length > 0 && (
+    <Win id="w-int" title="工作之外" icon="folder" class="w-wide" label="興趣" info={`${p.interests.length} 個項目`}>
+      <ul class="files files-sm">
+        {p.interests.map((s) => (
+          <li><span class="file"><Icon kind="folder" size={48} /><span class="file-name">{s}</span></span></li>
+        ))}
+      </ul>
+    </Win>
+  )}
+</Layout>

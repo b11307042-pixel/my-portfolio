@@ -1,0 +1,17 @@
+---
+// 沒有截圖時的圖版：像雜誌的篇名頁。雙線框、直排篇名、朱紅印章、圖說，不是一塊色塊加淡淡的大字。
+import Seal from './Seal.astro';
+import { n2 } from './issue';
+interface Props { title: string; index: number; tags?: string[]; period?: string; ratio?: string; kicker?: string; class?: string }
+const { title, index, tags = [], period, ratio = '4 / 3', kicker = 'Feature', class: cls } = Astro.props;
+const tone = index % 2 ? 'dark' : 'light';
+---
+<div class:list={['tplate', `tp-${tone}`, cls]} style={`aspect-ratio:${ratio}`} data-plate role="img" aria-label={`${title}（篇名頁）`}>
+  <span class="tp-frame" aria-hidden="true"></span>
+  <span class="tp-k" aria-hidden="true"><span class="it">{kicker}</span> No.{n2(index + 1)}</span>
+  <span class="tp-title" aria-hidden="true">{title}</span>
+  <span class="tp-foot" aria-hidden="true">
+    <Seal text={[...title][0]} size="clamp(30px, 9cqw, 64px)" />
+    <span class="tp-cap">{tags.length > 0 && <span>{tags.join('・')}</span>}{period && <span class="it">{period}</span>}</span>
+  </span>
+</div>

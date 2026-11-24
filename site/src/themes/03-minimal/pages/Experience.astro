@@ -1,0 +1,49 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import Px from '../components/Px.astro';
+import { getExperience, u } from '../../../lib/site';
+import { pad, tones } from '../components/game';
+
+const exp = await getExperience();
+const types = [...new Set(exp.map((e) => e.data.type || '經歷'))];
+const toneOf = (t?: string) => tones[types.indexOf(t || '經歷') % tones.length];
+const counts = types.map((t) => ({ t, n: exp.filter((e) => (e.data.type || '經歷') === t).length }));
+---
+<Layout title="經歷" page="experience">
+  <PageHead stage="STAGE 04" en="SAVE FILES" title="冒險紀錄" lead={exp.length ? `${exp.length} 個存檔，從最近的開始讀取。` : '冒險才剛開始，第一個存檔還沒寫入。'} icon="key">
+    {counts.length > 0 && (
+      <ul class="ph-legend" data-in>
+        {counts.map((c) => <li class={`chip t-${toneOf(c.t)}`}>{c.t}<b>x{c.n}</b></li>)}
+      </ul>
+    )}
+  </PageHead>
+
+  <section class="wrap sec-tight">
+    {exp.length > 0 ? (
+      <ol class="log">
+        {exp.map((e, i) => (
+          <li class="log-it" data-rise>
+            <span class={`log-node t-${toneOf(e.data.type)}`} aria-hidden="true"></span>
+            <article class={`log-card box t-${i === 0 ? 'mint' : 'line'}`}>
+              <div class="box-bar"><span class="box-t">FILE {pad(i + 1)}{i === 0 && <span class="np"> · NOW PLAYING</span>}</span><span class="box-m">{e.data.period}</span></div>
+              <div class="log-in">
+                <div class="log-head">
+                  <h2 class="log-t">{e.data.title}</h2>
+                  {e.data.type && <span class={`chip t-${toneOf(e.data.type)}`}>{e.data.type}</span>}
+                </div>
+                <p class="log-org">{e.data.org}</p>
+                <p class="log-sum">{e.data.summary}</p>
+                {e.data.points.length > 0 && (
+                  <ul class="log-pts">{e.data.points.map((pt) => <li><Px name="check" scale={2} />{pt}</li>)}</ul>
+                )}
+              </div>
+            </article>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <div class="empty box t-line"><Px name="scroll" scale={6} class="bob" /><p>還沒有存檔。先去<a href={u('/projects/')}>任務看板</a>看看吧。</p></div>
+    )}
+  </section>
+</Layout>

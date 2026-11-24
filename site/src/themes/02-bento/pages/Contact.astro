@@ -1,0 +1,69 @@
+---
+import Layout from '../Layout.astro';
+import Icon from '../components/Icon.astro';
+import ContactForm from '../../../shared/ContactForm.astro';
+import { getProfile, u, initials } from '../../../lib/site';
+const p = (await getProfile()).data;
+---
+<Layout title="聯絡" page="contact">
+  <header class="phead wrap">
+    <p class="kicker">聯絡</p>
+    <h1 class="h1" data-intro>我們聊聊。</h1>
+    <p class="lede" data-intro>{p.status ? `${p.status}。` : ''}實習、專案合作或只是想交流，都歡迎。</p>
+  </header>
+  <div class="wrap contact">
+    {p.email && (
+      <div class="card c-mail" data-rise>
+        <p class="kicker" style="margin:0">最快的方式</p>
+        <a class="c-addr" href={`mailto:${p.email}`}>{p.email}</a>
+        <div class="c-row">
+          <a class="pill" href={`mailto:${p.email}`}><Icon name="mail" />寄信給我</a>
+          <button class="copy" type="button" data-copy={p.email}><Icon name="copy" /><span>複製 Email</span></button>
+        </div>
+      </div>
+    )}
+    <div class="card c-form" data-rise>
+      <h2>留言給我</h2>
+      <ContactForm email={p.email} />
+      <div class="c-sig">
+        <span class="idc-mono" aria-hidden="true">{initials(p.name, p.nameEn)}</span>
+        <div><strong>{p.name}{p.nameEn && <em> {p.nameEn}</em>}</strong><span>{p.role}</span></div>
+      </div>
+    </div>
+    <div class="c-side">
+      {p.status && (
+        <div class="card" data-rise>
+          <p class="kicker">現在</p>
+          <p class="c-status"><i class="live" aria-hidden="true"></i>{p.status}</p>
+          {p.location && <p class="b-loc"><Icon name="pin" />{p.location}</p>}
+        </div>
+      )}
+      {p.links.length > 0 && (
+        <div class="card" data-rise>
+          <p class="kicker">其他地方</p>
+          <div class="c-links">{p.links.map((l) => <a href={u(l.url)} target="_blank" rel="noopener">{l.label}<Icon name="out" /></a>)}</div>
+        </div>
+      )}
+      <div class="card" data-rise>
+        <p class="kicker">來信時可以附上</p>
+        <ol class="c-steps"><li>你是誰、從哪裡看到我</li><li>想聊的事情或職缺</li><li>方便聯絡的時間</li></ol>
+      </div>
+    </div>
+  </div>
+</Layout>
+<script>
+  import { gsap, onReady } from '../../../lib/motion';
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => {
+    const label = b.querySelector('span')!;
+    b.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(b.dataset.copy || ''); label.textContent = '已複製'; }
+      catch { label.textContent = '請手動複製'; }
+      b.classList.add('done');
+      setTimeout(() => { b.classList.remove('done'); label.textContent = '複製 Email'; }, 1800);
+    });
+  });
+  onReady(() => {
+    gsap.from('.phead .kicker, [data-intro]', { y: 30, opacity: 0, filter: 'blur(8px)', duration: 1.3, ease: 'expo.out', stagger: 0.1 });
+    gsap.from('.contact > *', { y: 60, opacity: 0, duration: 1.3, ease: 'expo.out', stagger: 0.08, delay: 0.25 });
+  });
+</script>

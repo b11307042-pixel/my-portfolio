@@ -1,0 +1,5 @@
+---
+interface Props { k: string; class?: string }
+const { k, class: cls } = Astro.props;
+---
+<kbd class:list={['kbd', cls]}>{k}</kbd>

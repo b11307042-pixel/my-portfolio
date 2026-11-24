@@ -1,0 +1,42 @@
+---
+// 作品列：年份｜名稱＋一句話｜箭頭。桌機滑過會有截圖跟著游標；手機在右邊放小縮圖。
+import { u, img } from '../../../lib/site';
+interface Props { list: any[]; detail?: boolean }
+const { list, detail = false } = Astro.props;
+const yr = (s?: string) => (s?.match(/\d{4}/)?.[0] ?? '');
+---
+<ol class:list={['wrows', { detail }]}>
+  {list.map((x, i) => {
+    const cover = img(x.data.cover);
+    return (
+      <li data-in>
+        <a class:list={['wrow', { open: detail && i === 0, 'has-img': cover }]} href={u(`/projects/${x.id}/`)} data-peek={detail ? undefined : cover}>
+          <span class="d mono">{yr(x.data.period) || x.data.period || String(i + 1).padStart(2, '0')}</span>
+          <span class="wt">
+            <b>{x.data.title}</b>
+            <span class="ws">{x.data.summary}</span>
+            {detail && (
+              <span class="wmeta mono">
+                {x.data.role && <span>{x.data.role}</span>}
+                {x.data.tags.length > 0 && <span>{x.data.tags.join(' · ')}</span>}
+              </span>
+            )}
+          </span>
+          {cover && !detail && <img class="wthumb" src={cover} alt="" loading="lazy" />}
+          <span class="arr" aria-hidden="true">→</span>
+          {detail && (
+            <span class="wx">
+              <span class="wx-in">
+                {cover ? (
+                  <img src={cover} alt="" loading="lazy" />
+                ) : x.data.results.length > 0 ? (
+                  <span class="wx-res">{x.data.results.slice(0, 3).map((r: string) => <span><i aria-hidden="true">+</i>{r}</span>)}</span>
+                ) : null}
+              </span>
+            </span>
+          )}
+        </a>
+      </li>
+    );
+  })}
+</ol>

@@ -1,0 +1,17 @@
+---
+import { kp } from './kp';
+// 每一頁的頁首：編號、英文大字、中文標題、超大頁碼
+interface Props { num: string; en: string; title: string; lead?: string; note?: string }
+const { num, en, title, lead, note } = Astro.props;
+---
+<header class="ph">
+  <div class="ph-meta mono" data-hero-fade>
+    <span>({num})</span><span>{en}</span><span class="ph-note">{note}</span>
+  </div>
+  <div class="ph-main">
+    <h1 class="ph-title"><span class="ph-en" data-hero-chars>{en}</span><span class="ph-zh" data-hero-lines>{title}</span></h1>
+    <span class="ph-num" aria-hidden="true" data-hero-chars>{num}</span>
+  </div>
+  {lead && <p class:list={['ph-lead', kp(lead)]} data-hero-lines>{lead}</p>}
+  <slot />
+</header>

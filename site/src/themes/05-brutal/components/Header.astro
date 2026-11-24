@@ -1,0 +1,45 @@
+---
+import { getProfile, navItems, u, initials } from '../../../lib/site';
+const p = (await getProfile()).data;
+const items = await navItems();
+const path = Astro.url.pathname;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const active = (href: string) => {
+  const full = base + href;
+  return href === '/' ? path === full || path === base + '/' : path.startsWith(full);
+};
+const colors = ['y', 'p', 'b', 'm', 'o', 'y'];
+---
+<header class="hd" data-hd>
+  <div class="hd-in">
+    <a class="logo" href={u('/')} aria-label={`${p.name}，回首頁`}>
+      <span class="logo-mark" aria-hidden="true">{initials(p.name, p.nameEn)}</span>
+      <span class="logo-name">{p.name}</span>
+    </a>
+    <nav class="hd-nav" aria-label="主要導覽">
+      {items.map((it) => (
+        <a href={u(it.href)} class:list={['hd-link', { on: active(it.href) }]} aria-current={active(it.href) ? 'page' : undefined}>{it.label}</a>
+      ))}
+    </nav>
+    <a class="btn btn-sm btn-y hd-cta" href={u('/contact/')}>
+      <span>打聲招呼</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" /></svg>
+    </a>
+    <button class="burger" type="button" data-burger aria-expanded="false" aria-controls="mnav">
+      <span class="burger-t">選單</span>
+      <span class="burger-i" aria-hidden="true"><i></i><i></i></span>
+    </button>
+  </div>
+</header>
+<div class="mnav" id="mnav" data-mnav>
+  <nav class="mnav-list" aria-label="手機導覽">
+    {items.map((it, i) => (
+      <a href={u(it.href)} class:list={['mnav-link', `c-${colors[i % colors.length]}`, { on: active(it.href) }]} aria-current={active(it.href) ? 'page' : undefined}>
+        <span class="mnav-n">{String(i + 1).padStart(2, '0')}</span>
+        <span class="mnav-zh">{it.label}</span>
+        <span class="mnav-en">{it.en}</span>
+      </a>
+    ))}
+  </nav>
+  {p.email && <a class="mnav-mail" href={`mailto:${p.email}`}>{p.email}</a>}
+</div>

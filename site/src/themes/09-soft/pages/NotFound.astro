@@ -1,0 +1,20 @@
+---
+import Layout from '../Layout.astro';
+import Buddy from '../components/Buddy.astro';
+import { u } from '../../../lib/site';
+---
+<Layout title="找不到這一頁" page="404">
+  <section class="wrap nf">
+    <div class="nf-row" aria-hidden="true">
+      <span class="nf-n t-lav" data-float>4</span>
+      <Buddy mood="oops" class="nf-buddy" />
+      <span class="nf-n t-peach" data-float>4</span>
+    </div>
+    <h1 class="nf-title">咦，這一頁不見了</h1>
+    <p class="nf-lead">可能網址打錯，或是這頁已經搬家了。回首頁看看吧。</p>
+    <div class="nf-ctas">
+      <a class="btn btn-main btn-lg" href={u('/')} data-squish>回首頁</a>
+      <a class="btn btn-soft btn-lg" href={u('/projects/')} data-squish>看作品</a>
+    </div>
+  </section>
+</Layout>

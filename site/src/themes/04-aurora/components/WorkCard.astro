@@ -1,0 +1,27 @@
+---
+// 作品卡：截圖放在玻璃框裡；沒有截圖就是字體玻璃卡。整張卡會跟著游標傾斜。
+import { img, u } from '../../../lib/site';
+import Spec from './Spec.astro';
+import W from './W.astro';
+interface Props { entry: any; index: number; wide?: boolean }
+const { entry, index, wide = false } = Astro.props;
+const d = entry.data;
+const cover = img(d.cover);
+---
+<a class:list={['work glass', wide && 'work-wide', !cover && 'no-cover']} href={u(`/projects/${entry.id}/`)} data-reveal data-tilt data-tags={d.tags.join('|')}>
+  <div class="work-media">
+    {cover
+      ? <img src={cover} alt={`${d.title} 畫面`} loading="lazy" />
+      : <Spec title={d.title} summary={d.summary} results={d.results} tags={[]} period={d.period} index={index} compact />}
+  </div>
+  <div class="work-body">
+    <div class="work-meta">
+      <span class="work-no">{String(index + 1).padStart(2, '0')}</span>
+      {d.period && <span>{d.period}</span>}
+    </div>
+    <h3 class="work-title"><W text={d.title} /></h3>
+    <p class="work-sum">{d.summary}</p>
+    {d.tags.length > 0 && <p class="chips">{d.tags.map((t: string) => <span class="chip">{t}</span>)}</p>}
+    <span class="work-go" aria-hidden="true">→</span>
+  </div>
+</a>

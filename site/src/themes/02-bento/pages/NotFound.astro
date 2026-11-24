@@ -1,0 +1,25 @@
+---
+import Layout from '../Layout.astro';
+import Icon from '../components/Icon.astro';
+import { navItems, u } from '../../../lib/site';
+const items = (await navItems()).filter((i) => i.href !== '/');
+const hint: Record<string, string> = { '/about/': '我是誰、怎麼做事', '/projects/': '做過的專案', '/experience/': '實習、社團與競賽', '/blog/': '筆記與心得', '/contact/': '寄信或留言' };
+---
+<Layout title="找不到這一頁" page="404">
+  <section class="wrap nf">
+    <p class="nf-code" data-intro>404</p>
+    <h1 class="h2" data-intro>這一頁不見了。</h1>
+    <p class="lede" data-intro>網址可能打錯，或是頁面已經搬走。從這些地方重新開始吧。</p>
+    <div class="btns center" data-intro><a class="pill" href={u('/')}>回首頁</a></div>
+    <nav class="nf-links" aria-label="其他頁面">
+      {items.map((i) => <a class="card" href={u(i.href)} data-intro><strong>{i.label}</strong><span>{hint[i.href] || ''}</span></a>)}
+    </nav>
+  </section>
+</Layout>
+<script>
+  import { gsap, onReady } from '../../../lib/motion';
+  onReady(() => {
+    gsap.from('.nf-code', { scale: 0.8, opacity: 0, filter: 'blur(20px)', duration: 1.6, ease: 'expo.out' });
+    gsap.from('.nf [data-intro]:not(.nf-code)', { y: 30, opacity: 0, duration: 1.2, ease: 'expo.out', stagger: 0.06, delay: 0.2 });
+  });
+</script>

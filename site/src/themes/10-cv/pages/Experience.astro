@@ -1,0 +1,35 @@
+---
+import Layout from '../Layout.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { getExperience, u } from '../../../lib/site';
+const list = await getExperience();
+const years = [...new Set(list.map((e) => String(e.data.start).slice(0, 4)))];
+const counts = list.reduce((m: Record<string, number>, e) => { const t = e.data.type || '其他'; m[t] = (m[t] || 0) + 1; return m; }, {});
+---
+<Layout title="經歷" page="experience">
+  <header class="ph">
+    <Crumbs items={[{ label: '經歷' }]} />
+    <h1 class="ph-t" data-in>經歷</h1>
+    <p class="ph-s" data-in>{list.length ? `${list.length} 段，從 ${years[years.length - 1]} 到現在。` : '還在累積中。先看看作品吧。'}</p>
+    {Object.keys(counts).length > 0 && <p class="ph-tags mono" data-in>{Object.entries(counts).map(([k, v]) => <span>{k} <b>{v}</b></span>)}</p>}
+  </header>
+  {list.length === 0 && <p class="empty" data-in><a href={u('/projects/')}>看作品 →</a></p>}
+  {years.map((y) => (
+    <section class="ygroup" aria-label={y}>
+      <h2 class="yh mono" data-in>{y}</h2>
+      <ol class="tl">
+        {list.filter((e) => String(e.data.start).startsWith(y)).map((e) => (
+          <li class="tl-it" data-in>
+            <div class="tl-top">
+              <h3 class="xt">{e.data.title}<span class="xorg">{e.data.org}</span></h3>
+              <span class="d mono">{e.data.period}</span>
+            </div>
+            {e.data.type && <span class="badge mono">{e.data.type}</span>}
+            <p class="xs">{e.data.summary}</p>
+            {e.data.points.length > 0 && <ul class="xp">{e.data.points.map((pt) => <li>{pt}</li>)}</ul>}
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
+</Layout>

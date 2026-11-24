@@ -1,0 +1,12 @@
+---
+// 區塊標題：直排中文＋義大利體英文＋期號，桌機黏在左邊欄
+interface Props { num?: string; zh: string; en: string; id?: string }
+const { num, zh, en, id } = Astro.props;
+---
+<header class="rail" id={id}>
+  <div class="rail-in">
+    {num && <span class="rail-no"><span class="it">No.</span>{num}</span>}
+    <h2 class="rail-v" data-vert-scroll>{zh}</h2>
+    <p class="rail-en it">{en}</p>
+  </div>
+</header>

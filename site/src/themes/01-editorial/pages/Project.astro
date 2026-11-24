@@ -1,0 +1,90 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import Media from '../components/Media.astro';
+import Poster from '../components/Poster.astro';
+import { n2 } from '../components/num';
+import { ratio } from '../components/dims';
+import { u, img } from '../../../lib/site';
+import { render } from 'astro:content';
+
+const { entry, index = 0, total = 1, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+// 成果句子裡的數字標成紅色
+const mark = (s: string) => s.split(/(\d[\d,.]*\s?(?:%|倍|筆|位|本|場|步|秒|分鐘|小時|個|名|人)?)/).map((t, i) => ({ t, num: i % 2 === 1 }));
+const gal = d.gallery.map((g) => ({ ...g, r: ratio(g.src, 16 / 10) }));
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="project">
+  <article class="cs">
+    <header class="cs-head">
+      <div class="cs-meta mono" data-hero-fade>
+        <a class="ul" href={u('/projects/')}>← Index</a>
+        <span>Case study</span>
+        <span>{d.period}</span>
+        <span class="cs-of">No. {n2(index + 1)} / {n2(total)}</span>
+      </div>
+      <span class="rule"></span>
+      <div class="cs-titles">
+        <h1 class:list={['cs-title', kp(d.title)]} data-hero-lines>{d.title}</h1>
+        <span class="cs-num" aria-hidden="true" data-hero-chars>{n2(index + 1)}</span>
+      </div>
+      <p class:list={['cs-sum', kp(d.summary)]} data-hero-lines>{d.summary}</p>
+    </header>
+
+    <div class="cs-cover">
+      {d.cover ? <Media src={d.cover} alt={d.title} ratio="21 / 10" pos="top" hero caption={d.title}><span slot="cap" class="fig">Fig. 01</span></Media>
+        : <Poster title={d.title} index={index} tags={d.tags} period={d.period} ratio="21 / 9" size="lg" />}
+    </div>
+
+    <div class="cs-body">
+      <aside class="cs-side">
+        <dl class="sheet">
+          {d.role && <div><dt>Role</dt><dd>{d.role}</dd></div>}
+          {d.period && <div><dt>Period</dt><dd>{d.period}</dd></div>}
+          {d.tags.length > 0 && <div><dt>Stack</dt><dd class="sheet-tags">{d.tags.map((t) => <span>{t}</span>)}</dd></div>}
+          {d.links.length > 0 && <div><dt>Links</dt><dd class="sheet-links">{d.links.map((l) => <a class="ul" href={u(l.url)} target="_blank" rel="noopener">{l.label} ↗</a>)}</dd></div>}
+        </dl>
+      </aside>
+      <div class="cs-main">
+        {d.results.length > 0 && (
+          <section class="res" aria-label="成果">
+            <p class="mono res-k">(Results) 成果</p>
+            <ol>
+              {d.results.map((r, i) => (
+                <li data-up>
+                  <span class="mono res-n">R.{n2(i + 1)}</span>
+                  <p class:list={['res-t', kp(r)]}>{mark(r).map((x) => (x.num ? <span class="red">{x.t}</span> : x.t))}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+        <div class="prose cs-prose"><Content /></div>
+      </div>
+    </div>
+
+    {gal.length > 0 && (
+      <section class="gal" aria-label="作品畫面">
+        <div class="gal-head mono"><span class="rule" data-rule></span><span>(Gallery)</span><span>{n2(gal.length)} figures</span></div>
+        <div class="gal-row">
+          {gal.map((g, i) => (
+            <figure class="gal-i" style={`--r:${g.r.toFixed(3)}`} data-up>
+              <div class="media-box" style={`aspect-ratio:${g.r.toFixed(3)}`}><img src={img(g.src)} alt={g.caption || ''} loading="lazy" decoding="async" /></div>
+              <figcaption class="cap"><span class="fig">Fig. {n2(i + 2)}</span>{g.caption}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {next && next.id !== entry.id && (
+      <a class="nx" href={u(`/projects/${next.id}/`)}>
+        <span class="rule"></span>
+        <span class="nx-k mono"><span>Next project</span><span>No. {n2(((index + 1) % total) + 1)}</span></span>
+        <span class:list={['nx-t', kp(next.data.title)]}>{next.data.title}</span>
+        <span class="nx-arrow" aria-hidden="true">→</span>
+      </a>
+    )}
+  </article>
+</Layout>

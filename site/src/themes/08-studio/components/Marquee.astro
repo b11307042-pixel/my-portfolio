@@ -1,0 +1,14 @@
+---
+interface Props { items: string[]; rev?: boolean; accent?: boolean }
+const { items, rev = false, accent = false } = Astro.props;
+const list = items.length < 6 ? [...items, ...items, ...items] : items;
+---
+{items.length > 0 && (
+  <div class:list={['mq', { 'mq-accent': accent }]} data-marquee={rev ? 'rev' : 'fwd'} aria-label={items.join('、')}>
+    <div class="mq-track" aria-hidden="true">
+      {[0, 1].map(() => (
+        <div class="mq-set">{list.map((t) => <span class="mq-item">{t}<i class="mq-dot"></i></span>)}</div>
+      ))}
+    </div>
+  </div>
+)}

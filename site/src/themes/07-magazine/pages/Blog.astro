@@ -1,0 +1,39 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import Opener from '../components/Opener.astro';
+import { getPosts, u, fmtDate, readMinutes } from '../../../lib/site';
+import { folio, n2 } from '../components/issue';
+
+const posts = await getPosts();
+const page = await folio('/blog/');
+const [first, ...rest] = posts;
+---
+<Layout title="文章" page="blog">
+  <Opener kicker="專欄" en="Columns" title="專欄" lead={`${posts.length} 篇隨筆與筆記：做作品時想到的事。`} folio={page} />
+
+  {first && (
+    <a class="bl-lead" href={u(`/blog/${first.id}/`)} data-cursor="閱讀">
+      <p class="bl-lead-k"><span class="it">Latest column</span>　{fmtDate(first.data.date)}</p>
+      <h2 class:list={['bl-lead-t', kp(first.data.title)]}>{first.data.title}</h2>
+      <p class="bl-lead-s dropcap" data-ink>{first.data.summary}</p>
+      <p class="bl-lead-m">{first.data.tags.join('・')}　約 {readMinutes(first.body)} 分鐘</p>
+    </a>
+  )}
+  {rest.length > 0 && (
+    <ol class="bl-list">
+      {rest.map((x, i) => (
+        <li data-rise>
+          <a href={u(`/blog/${x.id}/`)} data-cursor="閱讀">
+            <span class="bl-n it">{n2(i + 2)}</span>
+            <span class="bl-main">
+              <span class:list={['bl-t', kp(x.data.title)]}>{x.data.title}</span>
+              <span class="bl-s">{x.data.summary}</span>
+            </span>
+            <span class="bl-d"><span class="it">{fmtDate(x.data.date)}</span><span>約 {readMinutes(x.body)} 分鐘</span></span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  )}
+</Layout>

@@ -1,0 +1,88 @@
+---
+import Layout from '../Layout.astro';
+import Cover from '../components/Cover.astro';
+import { render, type CollectionEntry } from 'astro:content';
+import { u, img } from '../../../lib/site';
+
+interface Props { entry: CollectionEntry<'projects'>; index: number; total: number; prev?: CollectionEntry<'projects'>; next?: CollectionEntry<'projects'> }
+const { entry, index, total, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const tones = ['lav', 'peach', 'mint', 'sky', 'butter'];
+// 成果裡最後一組數字拿出來放大
+const split = (r: string) => {
+  const all = [...r.matchAll(/(\d[\d,.]*(?:\s*[–~-]\s*\d[\d,.]*)?)\s*(%|％|秒|步|筆|人|位|小時|分鐘|倍|個|場|次|元|週|天|本|張|件|篇|年|月|組|\+)?/g)];
+  const m = all[all.length - 1];
+  return m ? { num: m[1].replace(/\s+/g, ''), unit: m[2] || '' } : null;
+};
+---
+<Layout title={d.title} description={d.summary} image={d.cover} page="project">
+  <header class={`case-head t-${tones[index % 4]}`}>
+    <div class="wrap case-head-in">
+      <div class="case-top" data-in>
+        <a class="pill-link" href={u('/projects/')} data-squish><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6" /></svg>所有作品</a>
+        <span class="case-idx">{String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}</span>
+      </div>
+      <h1 class="case-title" data-in>{d.title}</h1>
+      <p class="case-sum" data-in>{d.summary}</p>
+      <dl class="case-meta" data-in>
+        {d.role && <div><dt>我的角色</dt><dd>{d.role}</dd></div>}
+        {d.period && <div><dt>時間</dt><dd>{d.period}</dd></div>}
+        {d.tags.length > 0 && <div><dt>工具</dt><dd><ul class="pills">{d.tags.map((t) => <li>{t}</li>)}</ul></dd></div>}
+        {d.links.length > 0 && <div><dt>連結</dt><dd class="case-links">{d.links.map((l) => <a href={l.url} target="_blank" rel="noopener">{l.label}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" /></svg></a>)}</dd></div>}
+      </dl>
+    </div>
+  </header>
+
+  <div class="wrap case-cover" data-in>
+    <Cover src={d.cover} alt={`${d.title} 主畫面`} index={index} title={d.title} tag={d.tags[0]} note={d.results[0]} size="lg" eager />
+  </div>
+
+  {d.results.length > 0 && (
+    <section class="wrap sec-sm">
+      <ul class:list={['results', `n-${Math.min(d.results.length, 3)}`]}>
+        {d.results.map((r, i) => {
+          const s = split(r);
+          return (
+            <li class={`res clay t-${tones[(index + i + 1) % tones.length]}`} data-pop>
+              {s ? <strong class="res-big"><span data-count>{s.num}</span>{s.unit && <small>{s.unit}</small>}</strong> : <span class="res-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2c.8 5.2 4.8 9.2 10 10-5.2.8-9.2 4.8-10 10-.8-5.2-4.8-9.2-10-10 5.2-.8 9.2-4.8 10-10z" /></svg></span>}
+              <p>{r}</p>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
+
+  <section class="wrap-read sec-sm">
+    <article class="clay prose-card prose" data-rise><Content /></article>
+  </section>
+
+  {d.gallery.length > 0 && (
+    <section class="sec gal-sec">
+      <div class="wrap sec-head">
+        <div><p class="kicker"><span class="kicker-dot"></span>Screens</p><h2 class="sec-title">更多畫面</h2></div>
+        {d.gallery.length > 2 && <p class="gal-hint">左右滑動看更多</p>}
+      </div>
+      <div class="gal" data-gal tabindex="0" aria-label="作品截圖">
+        {d.gallery.map((g, i) => (
+          <figure class={`gal-item t-${tones[(index + i) % tones.length]}`}>
+            <img src={img(g.src)} alt={g.caption || `${d.title} 畫面 ${i + 1}`} loading="lazy" />
+            {g.caption && <figcaption>{g.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {next && next.id !== entry.id && (
+    <section class="wrap sec">
+      <a class={`next-card clay t-${tones[(index + 1) % 4]}`} href={u(`/projects/${next.id}/`)} data-tilt>
+        <span class="kicker"><span class="kicker-dot"></span>下一個作品</span>
+        <span class="next-title">{next.data.title}</span>
+        <span class="next-sum">{next.data.summary}</span>
+        <span class="next-go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" /></svg></span>
+      </a>
+    </section>
+  )}
+</Layout>

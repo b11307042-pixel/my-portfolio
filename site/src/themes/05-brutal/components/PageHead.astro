@@ -1,0 +1,19 @@
+---
+// 內頁大標：英文描邊大字＋中文標題＋說明，右邊一個色塊貼紙
+interface Props { en: string; title: string; lead?: string; color?: string; count?: number | string; countLabel?: string }
+const { en, title, lead, color = 'y', count, countLabel } = Astro.props;
+---
+<header class:list={['ph', `c-${color}`]}>
+  <div class="wrap ph-in">
+    <p class="ph-en" aria-hidden="true" data-in style={`--len:${en.length}`}>{en}</p>
+    <h1 class="ph-title" data-in>{title}</h1>
+    {lead && <p class="ph-lead" data-in>{lead}</p>}
+    {count !== undefined && (
+      <div class="ph-count" data-in data-pop>
+        <strong data-count>{count}</strong>
+        {countLabel && <span>{countLabel}</span>}
+      </div>
+    )}
+    <slot />
+  </div>
+</header>

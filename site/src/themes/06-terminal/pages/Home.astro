@@ -1,0 +1,137 @@
+---
+import Layout from '../Layout.astro';
+import Win from '../components/Win.astro';
+import Icon from '../components/Icon.astro';
+import { getProfile, getProjects, getPosts, getExperience, u, img, fmtDate, initials } from '../../../lib/site';
+import { bars, fileName, n2 } from '../lib';
+
+const p = (await getProfile()).data;
+const projects = await getProjects();
+const picked = projects.filter((x) => x.data.featured);
+const featured = (picked.length ? picked : projects).slice(0, 6);
+const posts = (await getPosts()).slice(0, 4);
+const exp = (await getExperience()).slice(0, 4);
+const avatar = img(p.avatar);
+const pct = bars(p.highlights.map((h) => h.value));
+---
+<Layout stage="home">
+  <Win id="w-hello" title="Welcome" icon="app" class="w-hello" main label="歡迎">
+    <div class="hello">
+      <figure class:list={['hello-pic', !avatar && 'is-empty']}>
+        {avatar ? (
+          <img src={avatar} alt={`${p.name} 的大頭照`} width="1200" height="1200" decoding="async" />
+        ) : (
+          <span class="hello-init" aria-hidden="true"><Icon kind="app" size={48} /><b>{initials(p.name, p.nameEn)}</b></span>
+        )}
+        <figcaption>{avatar ? fileName(p.avatar) : 'no-photo.pict'}</figcaption>
+      </figure>
+      <div class="hello-id">
+        {p.nameEn && <p class="hello-en">{p.nameEn}</p>}
+        <h1 class="hello-name">{p.name}</h1>
+        <p class="hello-role">{p.role}</p>
+        {p.status && <p class="hello-status"><span class="led" aria-hidden="true"></span>{p.status}</p>}
+      </div>
+    </div>
+    <p class="hello-tag">{p.tagline}</p>
+    <p class="hello-intro">{p.intro}</p>
+    <div class="btns">
+      <a class="btn btn-default" href={u('/projects/')}>打開作品</a>
+      <a class="btn" href={u('/about/')}>關於我</a>
+      <a class="btn" href={u('/contact/')}>聯絡</a>
+    </div>
+  </Win>
+
+  {p.highlights.length > 0 && (
+    <Win id="w-hl" title="Highlights" icon="app" class="w-hl" plain label="重點數字" info={`${p.highlights.length} 項`} infoR="已完成">
+      <ul class="hl">
+        {p.highlights.map((h, i) => (
+          <li>
+            <span class="hl-v">{h.value}</span>
+            <span class="hl-l">{h.label}</span>
+            <span class="prog" aria-hidden="true"><i data-prog style={`width:${pct[i]}%`}></i></span>
+          </li>
+        ))}
+      </ul>
+    </Win>
+  )}
+
+  {featured.length > 0 && (
+    <Win id="w-prj" title="Projects" icon="folder" class="w-prj" label="精選作品" info={`${featured.length} 個項目${projects.length > featured.length ? `，共 ${projects.length} 個` : ''}`} infoR="按兩下打開">
+      <ul class="files">
+        {featured.map((x) => {
+          const cover = img(x.data.cover);
+          return (
+            <li>
+              <a class="file" href={u(`/projects/${x.id}/`)}>
+                <span class:list={['file-thumb', !cover && 'is-doc']}>
+                  {cover ? <img src={cover} alt="" loading="lazy" decoding="async" /> : (
+                    <span class="doc-prev" aria-hidden="true"><Icon kind="doc" size={32} /><span>{x.data.summary}</span></span>
+                  )}
+                </span>
+                <span class="file-name">{x.data.title}</span>
+                {x.data.period && <span class="file-meta">{x.data.period}</span>}
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+      <a slot="foot" class="btn btn-sm" href={u('/projects/')}>打開資料夾</a>
+    </Win>
+  )}
+
+  <Win id="w-about" title="About Me.txt" icon="text" class="w-about" label="關於我">
+    {p.quote && <p class="doc-quote">{p.quote}</p>}
+    {p.traits.length > 0 ? (
+      <ol class="mini-traits">
+        {p.traits.map((t, i) => <li><span class="mt-n">{n2(i + 1)}</span><span><b>{t.title}</b>{t.text}</span></li>)}
+      </ol>
+    ) : <p class="doc-p">{p.intro}</p>}
+    <a slot="foot" class="btn btn-sm" href={u('/about/')}>讀完整檔案</a>
+  </Win>
+
+  {exp.length > 0 && (
+    <Win id="w-exp" title="Experience.log" icon="log" class="w-exp" label="經歷" info={`最近 ${exp.length} 筆`}>
+      <ol class="log">
+        {exp.map((x) => (
+          <li>
+            <span class="log-d">{x.data.period}</span>
+            <span class="log-t">{x.data.title}</span>
+            <span class="log-o">{x.data.org}{x.data.type && <em>{x.data.type}</em>}</span>
+          </li>
+        ))}
+      </ol>
+      <a slot="foot" class="btn btn-sm" href={u('/experience/')}>看完整經歷</a>
+    </Win>
+  )}
+
+  {posts.length > 0 && (
+    <Win id="w-posts" title="Writing" icon="folder" class="w-posts" label="文章" info={`${posts.length} 篇`}>
+      <ul class="rows">
+        {posts.map((x) => (
+          <li>
+            <a class="row" href={u(`/blog/${x.id}/`)}>
+              <Icon kind="text" size={16} />
+              <span class="row-t">{x.data.title}</span>
+              <time class="row-d" datetime={x.data.date.toISOString()}>{fmtDate(x.data.date)}</time>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <a slot="foot" class="btn btn-sm" href={u('/blog/')}>全部文章</a>
+    </Win>
+  )}
+
+  <Win id="w-mail" title="Mail" icon="mail" class="w-mail alert" plain label="聯絡">
+    <div class="alert-in">
+      <Icon kind="mail" size={48} />
+      <div>
+        <p class="alert-t">有想一起做的事嗎？</p>
+        <p>實習、合作或只是想交流，都歡迎來信。通常一兩天內回覆。</p>
+      </div>
+    </div>
+    <div slot="foot" class="btns btns-end">
+      {p.email && <a class="btn" href={`mailto:${p.email}`}>直接寫信</a>}
+      <a class="btn btn-default" href={u('/contact/')}>聯絡我</a>
+    </div>
+  </Win>
+</Layout>

@@ -1,0 +1,45 @@
+---
+// 頁首 HUD：左邊角色名牌、右邊選單（滑過會有 ▶ 跳過去）；手機是「MENU」按鈕打開的選單視窗
+import Px from './Px.astro';
+import { getProfile, navItems, u } from '../../../lib/site';
+import { level } from './game';
+const p = (await getProfile()).data;
+const items = await navItems();
+const lv = await level();
+const path = Astro.url.pathname;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const active = (href: string) => (href === '/' ? path === base + '/' || path === base : path.startsWith(base + href));
+---
+<header class="hd" data-hd>
+  <div class="hd-in wrap">
+    <a class="hd-brand" href={u('/')} aria-label={`${p.name}，回首頁`}>
+      <span class="hd-face"><Px name="hero" scale={2} /></span>
+      <span class="hd-id"><b>{p.name}</b><span class="hd-lv">LV.{lv}</span></span>
+    </a>
+    <nav class="hd-nav" aria-label="主要導覽" data-nav>
+      {items.map((it) => (
+        <a href={u(it.href)} class:list={['hd-link', { on: active(it.href) }]} aria-current={active(it.href) ? 'page' : undefined}>
+          <Px name="cursor" scale={2} class="hd-cur" />{it.label}
+        </a>
+      ))}
+    </nav>
+    <button class="hd-menu" type="button" data-menu aria-expanded="false" aria-controls="menu">
+      <span class="hd-menu-bars" aria-hidden="true"><i></i><i></i><i></i></span>MENU
+    </button>
+  </div>
+</header>
+<div class="menu" id="menu" data-menu-panel>
+  <div class="menu-box box t-gold">
+    <div class="box-bar"><span class="box-t">MENU</span><span class="box-m">選擇目的地</span></div>
+    <nav class="menu-nav" aria-label="手機選單">
+      {items.map((it, i) => (
+        <a href={u(it.href)} class:list={['menu-link', { on: active(it.href) }]}>
+          <Px name="cursor" scale={3} class="menu-cur" />
+          <span class="menu-zh">{it.label}</span>
+          <span class="menu-en">{it.en}</span>
+        </a>
+      ))}
+    </nav>
+    {p.status && <p class="menu-status"><i class="blip" aria-hidden="true"></i>{p.status}</p>}
+  </div>
+</div>

@@ -1,0 +1,18 @@
+---
+// 沒有大頭照時：一張「HELLO my name is」名牌貼紙
+interface Props { name: string; nameEn?: string; role?: string; class?: string }
+const { name, nameEn, role, class: cls = '' } = Astro.props;
+const n = [...name].length;
+---
+<div class={`tag-card ${cls}`}>
+  <div class="tag-top">
+    <span class="tag-hello">HELLO</span>
+    <span class="tag-sub">my name is</span>
+  </div>
+  <div class="tag-body">
+    <span class="tag-name" style={`--n:${Math.max(n, 2)}`}>{name}</span>
+    <svg class="tag-scribble" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 16 C 60 4, 110 22, 160 12 S 260 6, 296 14" /></svg>
+    {nameEn && <span class="tag-en">{nameEn}</span>}
+  </div>
+  {role && <div class="tag-foot">{role}</div>}
+</div>

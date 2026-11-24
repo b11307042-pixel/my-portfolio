@@ -1,0 +1,29 @@
+---
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getProjects } from '../../../lib/site';
+
+const projects = await getProjects();
+const tags = [...new Set(projects.flatMap((x) => x.data.tags))];
+---
+<Layout title="作品" page="projects">
+  <PageHead en="WORK" title="做過的東西" lead="每一件都寫了背景、我負責的部分，和最後的數字。點進去看完整過程。" color="b" count={projects.length} countLabel="件作品" />
+
+  <section class="wrap sec-tight">
+    {tags.length > 1 && projects.length > 2 && (
+      <div class="filter" role="group" aria-label="用標籤篩選">
+        <button type="button" class="fchip on" data-filter="" aria-pressed="true">全部</button>
+        {tags.map((t) => <button type="button" class="fchip" data-filter={t} aria-pressed="false">{t}</button>)}
+      </div>
+    )}
+    {projects.length > 0 ? (
+      <div class:list={['pc-grid', { solo: projects.length === 1 }]} data-grid>
+        {projects.map((x, i) => <div class="pc-cell" data-rise><ProjectCard entry={x} index={i} /></div>)}
+      </div>
+    ) : (
+      <div class="empty"><strong>作品準備中</strong><p>第一件作品快完成了，先到關於頁認識我。</p></div>
+    )}
+    <p class="filter-empty" data-filter-empty hidden>這個標籤沒有作品。</p>
+  </section>
+</Layout>

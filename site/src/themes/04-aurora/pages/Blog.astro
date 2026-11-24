@@ -1,0 +1,36 @@
+---
+import Layout from '../Layout.astro';
+import { getPosts, img, u, fmtDate, readMinutes } from '../../../lib/site';
+const posts = await getPosts();
+---
+<Layout title="文章" page="blog">
+  <section class="page-hero wrap glass glass-xl" data-pane>
+    <p class="eyebrow" data-intro>Writing · {String(posts.length).padStart(2, '0')}</p>
+    <h1 class="page-title"><span data-split>文章</span></h1>
+    <p class="page-lead" data-intro>做作品時的心得和學習筆記。</p>
+  </section>
+  {posts.length > 0 ? (
+    <section class="wrap posts">
+      {posts.map((x, i) => {
+        const cover = img(x.data.cover);
+        return (
+          <a class:list={['post-row glass', cover && 'has-cover']} href={u(`/blog/${x.id}/`)} data-reveal>
+            <span class="post-no">{String(posts.length - i).padStart(2, '0')}</span>
+            <span class="post-main">
+              <span class="post-meta"><time datetime={x.data.date.toISOString()}>{fmtDate(x.data.date)}</time><span>{readMinutes(x.body)} 分鐘</span>{x.data.tags.slice(0, 2).map((t) => <span>{t}</span>)}</span>
+              <span class="post-title">{x.data.title}</span>
+              <span class="post-sum">{x.data.summary}</span>
+            </span>
+            {cover && <span class="post-thumb"><img src={cover} alt="" loading="lazy" /></span>}
+            <span class="post-go" aria-hidden="true">→</span>
+          </a>
+        );
+      })}
+    </section>
+  ) : (
+    <section class="wrap empty glass">
+      <p class="empty-title">還沒有文章</p>
+      <p>第一篇心得正在寫。</p>
+    </section>
+  )}
+</Layout>

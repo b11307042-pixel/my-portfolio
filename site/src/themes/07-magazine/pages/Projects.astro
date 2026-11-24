@@ -1,0 +1,47 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import Opener from '../components/Opener.astro';
+import Plate from '../components/Plate.astro';
+import TypePlate from '../components/TypePlate.astro';
+import { getProjects, u } from '../../../lib/site';
+import { folio, n2 } from '../components/issue';
+
+const projects = await getProjects();
+const page = await folio('/projects/');
+const [lead, ...rest] = projects;
+---
+<Layout title="作品" page="projects">
+  <Opener kicker="作品特輯" en="Features" title="作品特輯" lead={`本期收錄 ${projects.length} 篇作品，每一篇都從為什麼做開始，寫到最後的數字。`} folio={page} />
+
+  {lead && (
+    <article class="pl-lead">
+      <a class="pl-lead-plate" href={u(`/projects/${lead.id}/`)} data-cursor="閱讀" tabindex="-1" aria-hidden="true">
+        {lead.data.cover ? <Plate src={lead.data.cover} ratio="16 / 10" pos="top" parallax={false} /> : <TypePlate title={lead.data.title} index={0} tags={lead.data.tags} period={lead.data.period} ratio="16 / 10" />}
+      </a>
+      <div class="pl-lead-text">
+        <p class="feat-k"><span class="it">Feature</span> No.01<span class="feat-p it">Cover story</span></p>
+        <h2 class:list={['pl-lead-t', kp(lead.data.title)]}><a href={u(`/projects/${lead.id}/`)} data-cursor="閱讀">{lead.data.title}</a></h2>
+        <p class="pl-lead-s" data-ink>{lead.data.summary}</p>
+        <p class="feat-meta">{lead.data.role && <span>{lead.data.role}</span>}{lead.data.period && <span class="it">{lead.data.period}</span>}</p>
+      </div>
+    </article>
+  )}
+
+  {rest.length > 0 && (
+    <ol class="pl-grid">
+      {rest.map((x, i) => (
+        <li data-rise>
+          <a href={u(`/projects/${x.id}/`)} data-cursor="閱讀">
+            {x.data.cover ? <Plate src={x.data.cover} ratio="16 / 10" pos="top" parallax={false} /> : <TypePlate title={x.data.title} index={i + 1} tags={x.data.tags} period={x.data.period} ratio="16 / 10" />}
+            <p class="feat-k"><span class="it">Feature</span> No.{n2(i + 2)}<span class="feat-p it">{x.data.period}</span></p>
+            <h2 class:list={['pl-t', kp(x.data.title)]}>{x.data.title}</h2>
+            <p class="pl-s">{x.data.summary}</p>
+            <p class="pl-tags">{x.data.tags.join('・')}</p>
+          </a>
+        </li>
+      ))}
+    </ol>
+  )}
+  {projects.length === 0 && <p class="empty">本期還沒有作品。把作品寫進 src/content/projects/，就會出現在這裡。</p>}
+</Layout>

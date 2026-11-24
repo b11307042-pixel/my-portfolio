@@ -1,0 +1,18 @@
+---
+import Layout from '../Layout.astro';
+import { navItems, u } from '../../../lib/site';
+const items = (await navItems()).filter((i) => i.href !== '/');
+---
+<Layout title="找不到頁面" page="404">
+  <section class="wrap nf glass glass-xl" data-pane>
+    <p class="nf-code" aria-hidden="true">404</p>
+    <h1 class="page-title"><span data-split>這一頁不在這裡</span></h1>
+    <p class="page-lead" data-intro>網址可能打錯了，或是頁面已經搬家。從下面挑一個地方繼續看。</p>
+    <div class="hero-actions" data-intro>
+      <a class="btn btn-ink magnet" href={u('/')}>回首頁<span class="arrow" aria-hidden="true">→</span></a>
+    </div>
+    <nav class="nf-links" aria-label="其他頁面" data-intro>
+      {items.map((i) => <a class="glass" href={u(i.href)}><span>{i.label}</span><span class="nf-en">{i.en}</span></a>)}
+    </nav>
+  </section>
+</Layout>

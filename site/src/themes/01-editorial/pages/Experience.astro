@@ -1,0 +1,47 @@
+---
+import { kp } from '../components/kp';
+import Layout from '../Layout.astro';
+import PageHead from '../components/PageHead.astro';
+import { pageNum, n2 } from '../components/num';
+import { getExperience, u } from '../../../lib/site';
+
+const exp = await getExperience();
+const num = await pageNum('/experience/');
+const types = [...new Set(exp.map((e) => e.data.type).filter(Boolean))] as string[];
+const count = types.map((t) => ({ t, n: exp.filter((e) => e.data.type === t).length }));
+---
+<Layout title="經歷" page="experience">
+  <PageHead num={num} en="Experience" title="經歷" lead={exp.length ? `${exp.length} 段經歷${types.length ? '：' + types.join('、') : ''}。` : '經歷整理中。'} note="Chronological" />
+
+  {exp.length > 0 ? (
+    <>
+      {count.length > 1 && (
+        <dl class="ex-sum">
+          <div><dt class="mono">Total</dt><dd>{n2(exp.length)}</dd></div>
+          {count.map((c) => <div><dt class="mono">{c.t}</dt><dd>{n2(c.n)}</dd></div>)}
+        </dl>
+      )}
+      <ol class="ex">
+        {exp.map((e, i) => (
+          <li class="ex-i" data-up>
+            <div class="ex-when">
+              <span class="mono ex-n">{n2(exp.length - i)}</span>
+              <span class="ex-p">{e.data.period}</span>
+              {e.data.type && <span class="mono red">{e.data.type}</span>}
+            </div>
+            <div class="ex-what">
+              <h2 class:list={['ex-t', kp(e.data.title)]}>{e.data.title}</h2>
+              <p class="ex-o">{e.data.org}</p>
+            </div>
+            <div class="ex-detail">
+              <p class="ex-s">{e.data.summary}</p>
+              {e.data.points.length > 0 && <ul class="ex-pts">{e.data.points.map((pt) => <li>{pt}</li>)}</ul>}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </>
+  ) : (
+    <p class="empty">還沒有經歷。實習、打工、社團都可以寫進 src/content/experience/。<a class="ul" href={u('/projects/')}>先看作品 →</a></p>
+  )}
+</Layout>

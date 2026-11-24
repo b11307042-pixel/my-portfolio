@@ -1,0 +1,91 @@
+---
+// 像素風圖示（32×32 格，用 16／32／48 顯示才會銳利）。全部是 SVG，沒有外部圖。
+import type { IconKind } from '../lib';
+interface Props { kind?: IconKind; size?: number; class?: string }
+const { kind = 'doc', size = 32, class: cls } = Astro.props;
+---
+<svg class:list={['ico', cls]} width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+  {kind === 'disk' && (
+    <>
+      <path d="M3 10h26v14H3z" fill="#d6d6d6" stroke="#000" stroke-width="2" />
+      <path d="M4 11h24v2H4z" fill="#fff" />
+      <path d="M4 20h24v3H4z" fill="#9a9a9a" />
+      <path d="M6 16h4v2H6z" fill="#18b14a" />
+      <path d="M16 16h10v2H16z" fill="#555" />
+    </>
+  )}
+  {kind === 'folder' && (
+    <>
+      <path d="M3 7h10l2 3h14v17H3z" fill="#7d93e6" stroke="#000" stroke-width="2" />
+      <path d="M3 12h26v15H3z" fill="#aabdff" stroke="#000" stroke-width="2" />
+      <path d="M4 13h24v2H4z" fill="#dfe6ff" />
+    </>
+  )}
+  {(kind === 'doc' || kind === 'text' || kind === 'log' || kind === 'cv' || kind === 'image' || kind === 'note') && (
+    <>
+      <path d="M6 3h14l6 6v20H6z" fill={kind === 'note' ? '#fff27a' : '#fff'} stroke="#000" stroke-width="2" />
+      <path d="M20 3v6h6" fill="#cfcfcf" stroke="#000" stroke-width="2" />
+    </>
+  )}
+  {(kind === 'doc' || kind === 'text' || kind === 'note') && <path d="M9 13h12v2H9zM9 17h14v2H9zM9 21h10v2H9z" fill="#000" />}
+  {kind === 'log' && <path d="M9 12h2v2H9zM13 12h10v2H13zM9 16h2v2H9zM13 16h8v2h-8zM9 20h2v2H9zM13 20h10v2H13zM9 24h2v2H9zM13 24h6v2h-6z" fill="#000" />}
+  {kind === 'cv' && (
+    <>
+      <path d="M7 19h18v8H7z" fill="#e8402a" />
+      <path d="M9 13h6v2H9zM9 9h10v2H9z" fill="#000" />
+      <path d="M10 21h2v4h-2zM12 21h2v1h-2zM12 24h2v1h-2zM16 21h1v3h-1zM17 24h1v1h-1zM18 21h1v3h-1z" fill="#fff" />
+    </>
+  )}
+  {kind === 'image' && (
+    <>
+      <path d="M9 11h14v14H9z" fill="#7fd0ff" stroke="#000" stroke-width="2" />
+      <path d="M10 20l4-4 3 3 2-2 3 3v4H10z" fill="#2f9e44" />
+      <path d="M17 13h3v3h-3z" fill="#ffd43b" />
+    </>
+  )}
+  {kind === 'mail' && (
+    <>
+      <path d="M3 8h26v17H3z" fill="#fff" stroke="#000" stroke-width="2" />
+      <path d="M4 9l12 9 12-9" fill="none" stroke="#000" stroke-width="2" />
+      <path d="M22 11h4v5h-4z" fill="#e8402a" />
+    </>
+  )}
+  {kind === 'link' && (
+    <>
+      <path d="M5 5h22v22H5z" fill="#fff" stroke="#000" stroke-width="2" />
+      <path d="M8 8h16v3H8z" fill="#2b3fd6" />
+      <path d="M9 14h14v10H9z" fill="#e6ecff" />
+      <path d="M13 19l7-5M20 14v4M20 14h-4" fill="none" stroke="#000" stroke-width="2" />
+    </>
+  )}
+  {kind === 'trash' && (
+    <>
+      <path d="M8 9h16l-2 19H10z" fill="#d6d6d6" stroke="#000" stroke-width="2" />
+      <path d="M6 7h20v3H6zM13 4h6v3h-6z" fill="#bdbdbd" stroke="#000" stroke-width="2" />
+      <path d="M12 13h2v12h-2zM18 13h2v12h-2z" fill="#8a8a8a" />
+    </>
+  )}
+  {kind === 'bomb' && (
+    <>
+      <path d="M8 12h14v2h2v12h-2v2H8v-2H6V14h2z" fill="#000" />
+      <path d="M10 15h3v3h-3z" fill="#fff" />
+      <path d="M20 8h2v4h-2zM22 6h2v2h-2z" fill="#000" />
+      <path d="M24 3h2v2h-2zM27 5h2v2h-2zM25 7h2v2h-2z" fill="#e8402a" />
+    </>
+  )}
+  {kind === 'find' && (
+    <>
+      <path d="M5 5h14v14H5z" fill="#e6f5ff" stroke="#000" stroke-width="2" />
+      <path d="M8 8h4v2H8z" fill="#fff" />
+      <path d="M18 18l9 9" stroke="#000" stroke-width="4" />
+    </>
+  )}
+  {kind === 'app' && (
+    <>
+      <path d="M5 4h22v18H5z" fill="#d6d6d6" stroke="#000" stroke-width="2" />
+      <path d="M8 7h16v12H8z" fill="#2b3fd6" stroke="#000" stroke-width="2" />
+      <path d="M12 11h2v2h-2zM18 11h2v2h-2zM12 15h8v2h-8z" fill="#fff" />
+      <path d="M3 24h26v4H3z" fill="#d6d6d6" stroke="#000" stroke-width="2" />
+    </>
+  )}
+</svg>

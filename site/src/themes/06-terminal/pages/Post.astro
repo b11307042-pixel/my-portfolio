@@ -1,0 +1,46 @@
+---
+import Layout from '../Layout.astro';
+import Win from '../components/Win.astro';
+import { u, img, fmtDate, readMinutes, getProfile } from '../../../lib/site';
+import { render } from 'astro:content';
+import { fileName } from '../lib';
+const { entry, prev, next } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const p = (await getProfile()).data;
+const cover = img(d.cover);
+---
+<Layout title={d.title} description={d.summary} image={d.cover} stage="page post">
+  <Win id="w-main" title={d.title} icon="text" class="w-main" main label="文章" info={fmtDate(d.date)} infoR={`${readMinutes(entry.body)} 分鐘`}>
+    <article>
+      <header class="doc-head">
+        <p class="kicker"><a href={u('/blog/')}>Writing</a> / <time datetime={d.date.toISOString()}>{fmtDate(d.date)}</time></p>
+        <h1 class="doc-title doc-title-post">{d.title}</h1>
+        <p class="doc-lead">{d.summary}</p>
+      </header>
+      <div class="prose prose-post"><Content /></div>
+    </article>
+    {(prev || next) && (
+      <nav slot="foot" class="pager" aria-label="其他文章">
+        {prev ? <a class="btn btn-sm" href={u(`/blog/${prev.id}/`)}><span aria-hidden="true">◀ </span>較新：{prev.data.title}</a> : <span></span>}
+        {next && <a class="btn btn-sm" href={u(`/blog/${next.id}/`)}>較舊：{next.data.title}<span aria-hidden="true"> ▶</span></a>}
+      </nav>
+    )}
+  </Win>
+  <div class="side">
+    <Win id="w-info" title="簡介" icon="doc" class="w-info" plain label="文章資訊">
+      <dl class="getinfo">
+        <div><dt>作者：</dt><dd>{p.name}</dd></div>
+        <div><dt>日期：</dt><dd>{fmtDate(d.date)}</dd></div>
+        <div><dt>長度：</dt><dd>約 {readMinutes(entry.body)} 分鐘</dd></div>
+        {d.tags.length > 0 && <div><dt>標籤：</dt><dd class="tags">{d.tags.map((t) => <span class="tag">{t}</span>)}</dd></div>}
+      </dl>
+      <a class="btn btn-sm" href={u('/blog/')}>所有文章</a>
+    </Win>
+    {cover && (
+      <Win id="w-cover" title={fileName(d.cover)} icon="image" class="w-viewer" plain label="封面" info="預覽">
+        <div class="viewer"><div class="viewer-stage"><img src={cover} alt="" decoding="async" /></div></div>
+      </Win>
+    )}
+  </div>
+</Layout>

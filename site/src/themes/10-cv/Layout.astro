@@ -1,0 +1,184 @@
+---
+import './styles.css';
+import Seo from '../../shared/Seo.astro';
+import Avatar from './components/Avatar.astro';
+import Cmdk from './components/Cmdk.astro';
+import { config, getProfile, navItems, u, fmtDate } from '../../lib/site';
+interface Props { title?: string; description?: string; image?: string; page?: string }
+const { title, description, image, page = '' } = Astro.props;
+const p = (await getProfile()).data;
+const nav = await navItems();
+const path = Astro.url.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '') || '/';
+const on = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const updated = fmtDate(new Date());
+---
+<!doctype html>
+<html lang={config.lang}>
+<head>
+  <Seo title={title} description={description} image={image} />
+  <meta name="color-scheme" content="light" />
+</head>
+<body data-page={page}>
+  <a class="skip" href="#main">跳到內容</a>
+  <div class="shell">
+    <aside class="side" aria-label="網站導覽">
+      <div class="side-in">
+        <a class="side-id" href={u('/')}>
+          <Avatar size={28} />
+          <span><b>{p.name}</b>{p.nameEn && <em>{p.nameEn}</em>}</span>
+        </a>
+        <nav class="side-nav">
+          {nav.map((n, i) => (
+            <a href={u(n.href)} aria-current={on(n.href) ? 'page' : undefined}>
+              <span>{n.label}</span><kbd class="kbd">{i + 1}</kbd>
+            </a>
+          ))}
+        </nav>
+        <button class="side-k" type="button" data-cmdk-open>
+          <span>快速跳頁</span><span><kbd class="kbd">⌘</kbd><kbd class="kbd">K</kbd></span>
+        </button>
+        {p.status && <p class="side-status"><i class="dot" aria-hidden="true"></i>{p.status}</p>}
+      </div>
+    </aside>
+
+    <header class="top">
+      <a class="side-id" href={u('/')}>
+        <Avatar size={26} />
+        <span><b>{p.name}</b></span>
+      </a>
+      <span class="top-cur">{nav.find((n) => on(n.href))?.label}</span>
+      <button class="top-menu" type="button" data-cmdk-open aria-label="開啟選單">
+        <span>選單</span>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5.5h10M3 10.5h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <main id="main" class="col">
+      <p class="doc-head mono" aria-hidden="true"><span><b>CV</b>&ensp;{p.nameEn || p.name}</span><span>{nav.find((n) => on(n.href))?.en || 'Page'}&ensp;·&ensp;{updated}</span></p>
+      <slot />
+      <footer class="foot">
+        <span>© {new Date().getFullYear()} {p.nameEn || p.name}</span>
+        <span class="foot-end" aria-hidden="true">— 完 —</span>
+        <span class="foot-up">更新於 {updated}</span>
+        <button type="button" class="foot-k" data-cmdk-open>按 <kbd class="kbd">⌘</kbd><kbd class="kbd">K</kbd> 快速跳頁</button>
+      </footer>
+    </main>
+  </div>
+  <Cmdk />
+  <div class="toast" role="status" aria-live="polite" data-toast></div>
+  <div class="peek" aria-hidden="true" data-peekbox><img alt="" /></div>
+
+  <script>
+    import { gsap, ScrollTrigger, onReady, canHover, still } from '../../lib/motion';
+
+    // ── 提示訊息
+    const toast = document.querySelector<HTMLElement>('[data-toast]')!;
+    let tt: number | undefined;
+    const say = (msg: string) => {
+      toast.textContent = msg;
+      toast.classList.add('on');
+      clearTimeout(tt);
+      tt = window.setTimeout(() => toast.classList.remove('on'), 1800);
+    };
+
+    // ── 複製 Email（任何 data-copy 按鈕）
+    document.addEventListener('click', async (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-copy]');
+      if (!b) return;
+      try { await navigator.clipboard.writeText(b.dataset.copy || ''); say('已複製 ' + b.dataset.copy); }
+      catch { say('沒辦法自動複製，請手動選取'); }
+      b.classList.add('done');
+      const lab = b.querySelector('[data-copy-label]');
+      const old = lab?.textContent;
+      if (lab) lab.textContent = '已複製';
+      setTimeout(() => { b.classList.remove('done'); if (lab && old) lab.textContent = old; }, 1600);
+      if (b.closest('dialog')) (b.closest('dialog') as HTMLDialogElement).close();
+    });
+    document.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('[data-print]')) { (document.querySelector('[data-cmdk]') as HTMLDialogElement)?.close(); setTimeout(() => window.print(), 60); }
+    });
+
+    // ── ⌘K 指令面板
+    const dlg = document.querySelector<HTMLDialogElement>('[data-cmdk]')!;
+    const q = dlg.querySelector<HTMLInputElement>('[data-cmdk-q]')!;
+    const items = [...dlg.querySelectorAll<HTMLElement>('.cmdk-it')];
+    const groups = [...dlg.querySelectorAll<HTMLElement>('.cmdk-g')];
+    const empty = dlg.querySelector<HTMLElement>('[data-cmdk-empty]')!;
+    let idx = 0;
+    const visible = () => items.filter((i) => !i.hidden);
+    const mark = () => visible().forEach((el, k) => el.toggleAttribute('data-active', k === idx));
+    const filter = () => {
+      const t = q.value.trim().toLowerCase();
+      items.forEach((el) => { el.hidden = !!t && !(el.dataset.k + ' ' + el.textContent).toLowerCase().includes(t); });
+      groups.forEach((g) => {
+        let n = g.nextElementSibling as HTMLElement | null, any = false;
+        while (n && !n.classList.contains('cmdk-g') && !n.hasAttribute('data-cmdk-empty')) { if (!n.hidden) any = true; n = n.nextElementSibling as HTMLElement | null; }
+        g.hidden = !any;
+      });
+      empty.hidden = visible().length > 0;
+      idx = 0; mark();
+    };
+    const open = () => {
+      if (dlg.open) return;
+      q.value = ''; filter();
+      dlg.showModal();
+      q.focus();
+      if (!still) gsap.fromTo('.cmdk-box', { y: -8, scale: 0.985, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.18, ease: 'power2.out' });
+    };
+    q.addEventListener('input', filter);
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener('keydown', (e) => {
+      const v = visible();
+      if (e.key === 'ArrowDown') { idx = (idx + 1) % v.length; mark(); v[idx]?.scrollIntoView({ block: 'nearest' }); e.preventDefault(); }
+      if (e.key === 'ArrowUp') { idx = (idx - 1 + v.length) % v.length; mark(); v[idx]?.scrollIntoView({ block: 'nearest' }); e.preventDefault(); }
+      if (e.key === 'Enter' && document.activeElement === q) { v[idx]?.click(); e.preventDefault(); }
+    });
+    items.forEach((el) => el.addEventListener('mousemove', () => { const k = visible().indexOf(el); if (k !== idx) { idx = k; mark(); } }));
+    document.querySelectorAll('[data-cmdk-open]').forEach((b) => b.addEventListener('click', open));
+
+    // ── 鍵盤：⌘K／Ctrl+K／「/」開面板；數字鍵跳頁；作品頁左右鍵換作品
+    const navLinks = [...document.querySelectorAll<HTMLAnchorElement>('.side-nav a')];
+    document.addEventListener('keydown', (e) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); dlg.open ? dlg.close() : open(); return; }
+      if (typing || dlg.open || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === '/') { e.preventDefault(); open(); return; }
+      const n = Number(e.key);
+      if (n >= 1 && n <= navLinks.length) { navLinks[n - 1].click(); return; }
+      const dir = e.key === 'ArrowLeft' ? 'prev' : e.key === 'ArrowRight' ? 'next' : '';
+      const a = dir && document.querySelector<HTMLAnchorElement>(`[data-key="${dir}"]`);
+      if (a) a.click();
+    });
+
+    // ── 作品列游標預覽（可 hover 的裝置才有）
+    const peek = document.querySelector<HTMLElement>('[data-peekbox]')!;
+    const peekImg = peek.querySelector('img')!;
+    if (canHover) {
+      const xTo = gsap.quickTo(peek, 'x', { duration: 0.35, ease: 'power3' });
+      const yTo = gsap.quickTo(peek, 'y', { duration: 0.35, ease: 'power3' });
+      document.querySelectorAll<HTMLElement>('[data-peek]').forEach((row) => {
+        if (!row.dataset.peek) return;
+        row.addEventListener('mouseenter', (e) => {
+          peekImg.src = row.dataset.peek!;
+          gsap.set(peek, { x: e.clientX + 24, y: e.clientY - 70 });
+          gsap.to(peek, { opacity: 1, scale: 1, duration: 0.2, ease: 'power2.out', overwrite: 'auto' });
+        });
+        row.addEventListener('mousemove', (e) => { xTo(e.clientX + 24); yTo(e.clientY - 70); });
+        row.addEventListener('mouseleave', () => gsap.to(peek, { opacity: 0, scale: 0.94, duration: 0.16, ease: 'power2.in', overwrite: 'auto' }));
+      });
+    }
+
+    // ── 進場：短、快、依序
+    onReady(() => {
+      const first = gsap.utils.toArray<HTMLElement>('[data-in]').filter((el) => el.getBoundingClientRect().top < window.innerHeight);
+      const later = gsap.utils.toArray<HTMLElement>('[data-in]').filter((el) => el.getBoundingClientRect().top >= window.innerHeight);
+      if (first.length) gsap.from(first, { y: 8, opacity: 0, duration: 0.25, ease: 'power2.out', stagger: 0.035, delay: 0.05 });
+      if (later.length) gsap.set(later, { y: 8, opacity: 0 });
+      if (later.length) ScrollTrigger.batch(later, {
+        start: 'top 94%', once: true,
+        onEnter: (els) => gsap.to(els, { y: 0, opacity: 1, duration: 0.25, ease: 'power2.out', stagger: 0.035, overwrite: true }),
+      });
+    });
+  </script>
+</body>
+</html>

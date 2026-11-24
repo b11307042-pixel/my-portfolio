@@ -1,0 +1,40 @@
+---
+import Layout from '../Layout.astro';
+import Device from '../components/Device.astro';
+import Icon from '../components/Icon.astro';
+import Cta from '../components/Cta.astro';
+import Phrases from '../components/Phrases.astro';
+import { getProjects, u } from '../../../lib/site';
+const list = await getProjects();
+---
+<Layout title="作品" page="projects">
+  <header class="phead wrap">
+    <p class="kicker">作品</p>
+    <h1 class="h1" data-intro><Phrases text="每一個作品，都從一個卡住的人開始。" /></h1>
+    <p class="lede" data-intro>{list.length} 個專案，背景、做法和成果數字都寫在裡面。</p>
+  </header>
+  <div class="wrap plist">
+    {list.map((x, i) => (
+      <a class:list={['card pcard', { big: i === 0 || (i === list.length - 1 && (list.length - 1) % 2 === 1), flip: i > 0 }]} href={u(`/projects/${x.id}/`)} data-rise>
+        <div class="pcard-media">
+          <Device src={x.data.cover} alt={x.data.title} kind="mac" eager={i < 2} fb={{ title: x.data.title, summary: x.data.summary, tags: x.data.tags, results: x.data.results, n: i + 1 }} />
+        </div>
+        <div class="pcard-tx">
+          <p class="pcard-meta"><span>{String(i + 1).padStart(2, '0')}</span>{x.data.period && <span>{x.data.period}</span>}</p>
+          <h2 class="pcard-t">{x.data.title}</h2>
+          <p class="pcard-s">{x.data.summary}</p>
+          {x.data.tags.length > 0 && <p class="chips">{x.data.tags.map((t) => <span>{t}</span>)}</p>}
+          <span class="tlink">看個案 <Icon name="chev" /></span>
+        </div>
+      </a>
+    ))}
+  </div>
+  <Cta />
+</Layout>
+<script>
+  import { gsap, onReady } from '../../../lib/motion';
+  onReady(() => {
+    gsap.from('.phead .kicker, [data-intro]', { y: 30, opacity: 0, filter: 'blur(8px)', duration: 1.3, ease: 'expo.out', stagger: 0.1 });
+    gsap.from('.plist > :first-child', { y: 80, opacity: 0, duration: 1.4, ease: 'expo.out', delay: 0.25 });
+  });
+</script>

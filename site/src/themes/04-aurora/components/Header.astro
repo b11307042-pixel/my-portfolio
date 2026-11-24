@@ -1,0 +1,41 @@
+---
+// 懸浮在漸層上的玻璃膠囊導覽。手機收成一顆玻璃按鈕，展開成整片玻璃選單。
+import { getProfile, navItems, u } from '../../../lib/site';
+import Avatar from './Avatar.astro';
+const p = (await getProfile()).data;
+const items = await navItems();
+const here = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? here === u('/') : here.startsWith(u(href)));
+const main = items.filter((i) => i.href !== '/' && i.href !== '/contact/');
+---
+<header class="site-head">
+  <div class="pill glass" data-head>
+    <a class="brand" href={u('/')} aria-label={`${p.name} 首頁`}>
+      <Avatar size="sm" photo />
+      <span class="brand-name">{p.name}</span>
+    </a>
+    <nav class="nav" aria-label="主要導覽">
+      {main.map((i) => (
+        <a href={u(i.href)} aria-current={isActive(i.href) ? 'page' : undefined}>{i.label}</a>
+      ))}
+    </nav>
+    <a class="btn btn-ink btn-sm head-cta" href={u('/contact/')} aria-current={isActive('/contact/') ? 'page' : undefined}>聯絡我</a>
+    <button class="menu-btn" type="button" data-menu-toggle aria-expanded="false" aria-controls="sheet" aria-label="開啟選單">
+      <span></span><span></span>
+    </button>
+  </div>
+  <div class="sheet" id="sheet" data-menu>
+    <nav class="sheet-panel glass" aria-label="手機導覽">
+      {items.map((i) => (
+        <a class="sheet-link" href={u(i.href)} aria-current={isActive(i.href) ? 'page' : undefined}>
+          <span class="sheet-label">{i.label}</span>
+          <span class="sheet-en">{i.en}</span>
+        </a>
+      ))}
+      <div class="sheet-foot">
+        {p.status && <p class="status"><span class="dot"></span>{p.status}</p>}
+        {p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}
+      </div>
+    </nav>
+  </div>
+</header>

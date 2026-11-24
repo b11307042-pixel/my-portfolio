@@ -1,0 +1,49 @@
+---
+import Layout from '../Layout.astro';
+import ContactForm from '../../../shared/ContactForm.astro';
+import Badge from '../components/Badge.astro';
+import { getProfile, img } from '../../../lib/site';
+
+const p = (await getProfile()).data;
+const colors = ['y', 'p', 'b', 'm'];
+---
+<Layout title="聯絡" page="contact">
+  <section class="wrap contact">
+    <div class="ct-left">
+      <p class="ph-en" aria-hidden="true" data-in>SAY HELLO</p>
+      <h1 class="ct-title" data-in>來聊聊吧</h1>
+      <p class="ct-lead" data-in>{p.status ? `${p.status}。` : ''}實習機會、合作專案，或只是想問問題，都歡迎寫信給我。</p>
+
+      {p.email && (
+        <div class="ct-mail" data-in>
+          <span class="ct-mail-k">EMAIL</span>
+          <a class="ct-mail-v" href={`mailto:${p.email}`}>{p.email}</a>
+          <button type="button" class="btn btn-sm btn-y" data-copy={p.email}><span data-copy-label>複製</span></button>
+        </div>
+      )}
+
+      {p.links.length > 0 && (
+        <ul class="ct-links" data-in>
+          {p.links.map((l, i) => (
+            <li><a class={`ct-link c-${colors[i % 4]}`} href={l.url} target="_blank" rel="noopener">
+              <span>{l.label}</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8" /></svg>
+            </a></li>
+          ))}
+        </ul>
+      )}
+      {p.resume && <a class="btn btn-w" href={img(p.resume)} target="_blank" rel="noopener" data-in>下載履歷 PDF</a>}
+    </div>
+
+    <div class="ct-right" data-in>
+      {p.status && <Badge class="ct-badge" text="REPLY IN 1–2 DAYS · REPLY IN 1–2 DAYS · " color="var(--mint)" />}
+      <div class="win c-p ct-win">
+        <div class="win-bar">
+          <span class="win-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="win-label">new_message.txt</span>
+        </div>
+        <div class="ct-form"><ContactForm email={p.email} /></div>
+      </div>
+    </div>
+  </section>
+</Layout>
