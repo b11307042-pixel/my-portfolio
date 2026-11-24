@@ -7,3 +7,5 @@ dist-themes/
 theme-previews/
 .vercel/
 dist-shoot/
+.vercel
+.env*
